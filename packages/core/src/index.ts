@@ -12,3 +12,28 @@
  */
 export { can } from "./policy/can";
 export type { Actor, Action, Resource } from "./policy/can";
+
+export {
+  AuthorizationError,
+  ensurePersonalOrg,
+  createEvent,
+  listEventsForUser,
+  getEventStats,
+  createFtpCredential,
+  getManagedEvent,
+  getManagedPhoto,
+} from "./services/events";
+
+export {
+  CONSENT_POLICY_VERSION,
+  ConsentRequiredError,
+  resolveQrToken,
+  joinEvent,
+  getOwnedParticipant,
+  markEnrollmentProcessing,
+  getEnrollment,
+  getGallery,
+  canViewPhotoAsParticipant,
+  requestDownload,
+  ensureEventQr,
+} from "./services/participants";

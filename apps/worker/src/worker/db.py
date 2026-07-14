@@ -38,10 +38,11 @@ def insert_face(
     quality_score: float,
     landmarks: dict,
     embedding: list[float] | None,
-) -> None:
-    """Idempotent: retried jobs hit ON CONFLICT and do nothing (docs/design/03 §5)."""
+) -> str:
+    """Idempotent: retried jobs hit ON CONFLICT and keep the same row
+    (docs/design/03 §5). Returns the face id either way — matching needs it."""
     emb_text = "[" + ",".join(f"{v:.6f}" for v in embedding) + "]" if embedding else None
-    conn.execute(
+    row = conn.execute(
         """
         INSERT INTO faces (
             id, photo_id, event_id,
@@ -49,7 +50,9 @@ def insert_face(
             detection_score, quality_score, landmarks, embedding
         )
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s::halfvec)
-        ON CONFLICT (photo_id, bbox_hash) DO NOTHING
+        ON CONFLICT (photo_id, bbox_hash)
+        DO UPDATE SET detection_score = EXCLUDED.detection_score
+        RETURNING id
         """,
         (
             str(uuid.uuid4()),
@@ -65,4 +68,5 @@ def insert_face(
             json.dumps(landmarks),
             emb_text,
         ),
-    )
+    ).fetchone()
+    return str(row[0])

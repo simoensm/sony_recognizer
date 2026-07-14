@@ -9,12 +9,27 @@
  * Plain FTP is fine on a private dev network. Production runs FTPS (TLS)
  * with a real certificate — wired in when we deploy (docs/design/06 §4).
  */
-import { mkdtemp } from "node:fs/promises";
+import { mkdtemp, mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { FtpSrv } from "ftp-srv";
+import { FtpSrv, FileSystem } from "ftp-srv";
 import { authenticateCamera, type CameraSession } from "./auth";
 import { processUpload } from "./process";
+
+/**
+ * Sony bodies CWD into folders that don't exist yet (date folders, or the
+ * configured destination directory) and expect the server to cope.
+ * This file system silently creates any directory the camera asks for.
+ */
+class CameraFileSystem extends FileSystem {
+  override async chdir(path = "."): Promise<string> {
+    const { fsPath } = (this as unknown as {
+      _resolvePath(p: string): { clientPath: string; fsPath: string };
+    })._resolvePath(path);
+    await mkdir(fsPath, { recursive: true }).catch(() => {});
+    return super.chdir(path);
+  }
+}
 
 export type FtpOptions = {
   port: number;
@@ -58,7 +73,9 @@ export function startFtpServer(opts: FtpOptions) {
         );
       });
 
-      return resolve({ root });
+      return resolve({
+        fs: new CameraFileSystem(connection, { root, cwd: "/" }),
+      });
     } catch (err) {
       console.error("[ftp] login handler error:", err);
       return reject(new Error("Internal error"));

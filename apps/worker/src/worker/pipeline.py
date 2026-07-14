@@ -18,6 +18,15 @@ import numpy as np
 from PIL import Image, ImageOps
 
 from . import db, settings, storage
+from .matching import match_face_against_identities
+
+# iPhones send HEIC; Pillow needs a plugin to decode it.
+try:
+    from pillow_heif import register_heif_opener
+
+    register_heif_opener()
+except ImportError:  # pragma: no cover
+    pass
 
 log = logging.getLogger("worker.pipeline")
 
@@ -96,7 +105,7 @@ def process_photo(photo_id: str, event_id: str, s3_key: str) -> dict:
             if usable and face.normed_embedding is not None:
                 embedding = [float(v) for v in face.normed_embedding]
 
-            db.insert_face(
+            face_id = db.insert_face(
                 conn,
                 photo_id=photo_id,
                 event_id=event_id,
@@ -111,6 +120,17 @@ def process_photo(photo_id: str, event_id: str, s3_key: str) -> dict:
             )
             if usable:
                 kept += 1
+                if embedding is not None:
+                    # Direction 2 (docs/design/03 §3): does this new face
+                    # belong to anyone already enrolled? This is why
+                    # galleries keep growing while the event is being shot.
+                    match_face_against_identities(
+                        conn,
+                        face_id=face_id,
+                        photo_id=photo_id,
+                        event_id=event_id,
+                        embedding=embedding,
+                    )
 
         # Variants before flipping status: "processed" must mean "gallery-ready".
         s3_prefix = s3_key.rsplit("/originals/", 1)[0]

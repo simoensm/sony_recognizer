@@ -1,0 +1,11 @@
+# Web entrance: terminates HTTPS (automatic Let's Encrypt certificates)
+# and routes each subdomain to its internal service.
+# Hostnames come from .env.production (APP_HOST / S3_HOST).
+
+{$APP_HOST} {
+	reverse_proxy web:3000
+}
+
+{$S3_HOST} {
+	reverse_proxy minio:9000
+}

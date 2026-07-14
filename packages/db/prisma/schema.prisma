@@ -322,6 +322,13 @@ enum ParticipantStatus {
   withdrawn
 }
 
+enum EnrollmentStatus {
+  none // joined, no selfie yet
+  processing // selfie uploaded, worker busy
+  ready // enrolled — gallery is live
+  failed // bad selfie (no face / several faces) — retake
+}
+
 // The authorization anchor: no participant row → no gallery (design 04 §2).
 model EventParticipant {
   id      String  @id @default(uuid(7))
@@ -336,6 +343,8 @@ model EventParticipant {
   consentId          String? @map("consent_id")
   consent            Consent? @relation(fields: [consentId], references: [id])
   status             ParticipantStatus @default(active)
+  enrollmentStatus   EnrollmentStatus  @default(none) @map("enrollment_status")
+  enrollmentError    String?           @map("enrollment_error")
   createdAt          DateTime          @default(now()) @map("created_at")
 
   identities FaceIdentity[]

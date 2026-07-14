@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "docs/design/07-milestones.md",
+                "file": "docs/setup/deploy-vps.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "07-milestones"
+              "title": "deploy-vps"
             }
           }
         ]
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "docs/design/07-milestones.md",
+                "file": "docs/setup/deploy-vps.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for 07-milestones"
+              "title": "Backlinks for deploy-vps"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "docs/design/07-milestones.md",
+                "file": "docs/setup/deploy-vps.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from 07-milestones"
+              "title": "Outgoing links from deploy-vps"
             }
           },
           {
@@ -156,13 +156,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "docs/design/07-milestones.md",
+                "file": "docs/setup/deploy-vps.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of 07-milestones"
+              "title": "Outline of deploy-vps"
             }
           }
         ]
@@ -185,24 +185,27 @@
   },
   "active": "db34279ff076dc25",
   "lastOpenFiles": [
-    "apps/worker/src/worker/__pycache__/storage.cpython-312.pyc",
-    "apps/worker/src/worker/__pycache__/pipeline.cpython-312.pyc",
-    "apps/worker/src/worker/__pycache__/contracts.cpython-312.pyc",
-    "apps/worker/src/worker/__pycache__/settings.cpython-312.pyc",
-    "apps/worker/src/worker/__pycache__/db.cpython-312.pyc",
-    "apps/worker/src/worker/__pycache__/main.cpython-312.pyc",
-    "apps/worker/src/worker/__pycache__/__init__.cpython-312.pyc",
-    "packages/db/prisma/migrations/20260714165046_init/migration.sql",
-    "packages/db/prisma/migrations/20260714165046_init",
-    "apps/ingest/node_modules/@aws-sdk",
-    "apps/ingest/node_modules/@types",
+    "docker/Caddyfile",
+    "docs/design/07-milestones.md",
+    "docs/setup/deploy-vps.md",
+    "docs/setup/deploy-truenas.md",
+    "docker/docker-compose.prod.yml",
+    "apps/ingest/Dockerfile",
+    "apps/web/Dockerfile",
+    "apps/web/src/app/api/v1/photos/[photoId]/download/route.ts",
+    "apps/web/src/app/api/v1/photos/[photoId]/download",
+    "apps/worker/src/worker/__pycache__/matching.cpython-312.pyc",
+    "apps/worker/src/worker/__pycache__/enroll.cpython-312.pyc",
+    "packages/db/prisma/migrations/20260714182855_init/migration.sql",
+    "packages/db/prisma/migrations/20260714182855_init",
+    "docs/setup/m2-attendee-test.md",
+    "apps/worker/src/worker/__pycache__/matching.cpython-310.pyc",
     "docs/setup/m1-camera-test.md",
     "CONTRIBUTING.md",
     "README.md",
     "SECURITY.md",
     "apps/worker/README.md",
     "docs/design/README.md",
-    "docs/design/07-milestones.md",
     "docs/design/06-security-privacy.md",
     "docs/design/05-api.md",
     "docs/design/04-database.md",

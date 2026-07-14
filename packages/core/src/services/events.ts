@@ -1,0 +1,206 @@
+/**
+ * Event management use-cases (docs/design/05 §3).
+ * Called by API routes; never touched by React components directly.
+ * Every function takes the acting userId FIRST — authorization is part
+ * of the signature, not an afterthought (docs/design/06 §2).
+ */
+import { randomBytes, scryptSync } from "node:crypto";
+import { prisma, type OrgRole } from "@sr/db";
+import { can } from "../policy/can";
+
+// ---------- helpers ----------
+
+function slugify(name: string): string {
+  return (
+    name
+      .toLowerCase()
+      .normalize("NFKD")
+      .replace(/[̀-ͯ]/g, "") // strip accents (é → e)
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 48) || "event"
+  );
+}
+
+/** Camera-friendly: lowercase + digits, no confusable characters. */
+const FRIENDLY = "abcdefghjkmnpqrstuvwxyz23456789";
+function friendlyToken(length: number): string {
+  return Array.from(randomBytes(length), (b) => FRIENDLY[b % FRIENDLY.length]).join("");
+}
+
+function hashPassword(password: string): string {
+  const salt = randomBytes(16).toString("hex");
+  return `scrypt:${salt}:${scryptSync(password, salt, 64).toString("hex")}`;
+}
+
+// ---------- membership / authorization ----------
+
+async function requireMembership(userId: string, orgId: string) {
+  const member = await prisma.orgMember.findUnique({
+    where: { orgId_userId: { orgId, userId } },
+  });
+  if (!member) throw new AuthorizationError();
+  return member;
+}
+
+export class AuthorizationError extends Error {
+  constructor() {
+    super("Not authorized");
+    this.name = "AuthorizationError";
+  }
+}
+
+/** Loads an event iff the user may manage it. 404-shaped null otherwise. */
+export async function getManagedEvent(userId: string, eventId: string) {
+  const event = await prisma.event.findFirst({
+    where: { id: eventId, deletedAt: null },
+  });
+  if (!event) return null;
+
+  const member = await prisma.orgMember.findUnique({
+    where: { orgId_userId: { orgId: event.orgId, userId } },
+  });
+  if (!member) return null; // outsiders get "not found", not "forbidden" (06 §5)
+
+  const allowed =
+    can(
+      { kind: "orgMember", userId, orgId: event.orgId, role: member.role as OrgRole },
+      "event.manage",
+      { kind: "event", eventId: event.id, orgId: event.orgId },
+    ) ||
+    // photographers manage events they're assigned to (docs/design/04 §2)
+    (member.role === "photographer" &&
+      (await prisma.eventPhotographer.count({
+        where: { eventId: event.id, orgMemberId: member.id },
+      })) > 0);
+
+  return allowed ? event : null;
+}
+
+// ---------- use-cases ----------
+
+/** Every user gets a personal org on first use — multi-tenancy without special cases (04 §2). */
+export async function ensurePersonalOrg(userId: string, displayName: string) {
+  const existing = await prisma.orgMember.findFirst({
+    where: { userId, role: "owner" },
+    include: { org: true },
+  });
+  if (existing) return existing.org;
+
+  const base = slugify(displayName || "studio");
+  return prisma.organization.create({
+    data: {
+      name: displayName ? `${displayName}'s Studio` : "My Studio",
+      slug: `${base}-${friendlyToken(4)}`,
+      members: { create: { userId, role: "owner" } },
+    },
+  });
+}
+
+export async function createEvent(
+  userId: string,
+  input: { name: string; venue?: string; startsAt?: Date; endsAt?: Date },
+) {
+  const org = await ensurePersonalOrg(userId, "");
+  await requireMembership(userId, org.id);
+
+  const base = slugify(input.name);
+  const taken = await prisma.event.findUnique({
+    where: { orgId_slug: { orgId: org.id, slug: base } },
+  });
+
+  return prisma.event.create({
+    data: {
+      orgId: org.id,
+      name: input.name,
+      slug: taken ? `${base}-${friendlyToken(4)}` : base,
+      venue: input.venue,
+      startsAt: input.startsAt,
+      endsAt: input.endsAt,
+      status: "live",
+    },
+  });
+}
+
+export async function listEventsForUser(userId: string) {
+  return prisma.event.findMany({
+    where: {
+      deletedAt: null,
+      org: { members: { some: { userId } } },
+    },
+    orderBy: { createdAt: "desc" },
+    include: { _count: { select: { photos: true, participants: true } } },
+  });
+}
+
+/** Dashboard numbers + latest photos (client polls this — docs/design/05 §3). */
+export async function getEventStats(userId: string, eventId: string) {
+  const event = await getManagedEvent(userId, eventId);
+  if (!event) return null;
+
+  const [byStatus, faceCount, recentPhotos] = await Promise.all([
+    prisma.photo.groupBy({
+      by: ["status"],
+      where: { eventId, deletedAt: null },
+      _count: true,
+    }),
+    prisma.face.count({ where: { eventId } }),
+    prisma.photo.findMany({
+      where: { eventId, deletedAt: null },
+      orderBy: { createdAt: "desc" },
+      take: 24,
+      select: { id: true, status: true, createdAt: true, capturedAt: true },
+    }),
+  ]);
+
+  const counts: Record<string, number> = {};
+  for (const row of byStatus) counts[row.status] = row._count;
+
+  return {
+    event: { id: event.id, name: event.name, status: event.status },
+    photos: {
+      total: Object.values(counts).reduce((a, b) => a + b, 0),
+      ingested: counts.ingested ?? 0,
+      processing: counts.processing ?? 0,
+      processed: counts.processed ?? 0,
+      failed: counts.failed ?? 0,
+    },
+    faces: faceCount,
+    recentPhotos,
+  };
+}
+
+/**
+ * Generates camera credentials. The password is returned ONCE and never
+ * stored in plaintext (docs/design/04 §2 — blast-radius containment).
+ */
+export async function createFtpCredential(userId: string, eventId: string, label?: string) {
+  const event = await getManagedEvent(userId, eventId);
+  if (!event) return null;
+
+  const username = `cam${friendlyToken(6)}`;
+  const password = friendlyToken(10);
+
+  await prisma.ftpCredential.create({
+    data: {
+      eventId: event.id,
+      username,
+      passwordHash: hashPassword(password),
+      s3Prefix: `orgs/${event.orgId}/events/${event.id}`,
+      label,
+      expiresAt: event.endsAt ?? new Date(Date.now() + 90 * 24 * 3600 * 1000),
+    },
+  });
+
+  return { username, password };
+}
+
+/** Thumbnail access check: may this user see this photo's variants? */
+export async function getManagedPhoto(userId: string, photoId: string) {
+  const photo = await prisma.photo.findFirst({
+    where: { id: photoId, deletedAt: null },
+  });
+  if (!photo) return null;
+  const event = await getManagedEvent(userId, photo.eventId);
+  return event ? photo : null;
+}

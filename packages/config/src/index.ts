@@ -21,6 +21,8 @@ const envSchema = z.object({
 
   BETTER_AUTH_SECRET: z.string().min(16, "generate with: openssl rand -base64 32"),
   BETTER_AUTH_URL: z.string().url(),
+  /** Public base URL for links/QRs. For phone testing: http://<mac-lan-ip>:3000 */
+  NEXT_PUBLIC_APP_URL: z.string().url().optional(),
 
   // --- FTP ingest (only the ingest service reads these) ---
   FTP_PORT: z.coerce.number().int().default(2121),

@@ -14,6 +14,15 @@ import { prisma } from "@sr/db";
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, { provider: "postgresql" }),
+  // Trust the configured URLs plus localhost in dev — the Mac browser may
+  // use localhost while phones use the LAN IP (QR flow testing).
+  trustedOrigins: [
+    process.env.BETTER_AUTH_URL,
+    process.env.NEXT_PUBLIC_APP_URL,
+    ...(process.env.NODE_ENV !== "production"
+      ? ["http://localhost:3000", "http://127.0.0.1:3000"]
+      : []),
+  ].filter((v): v is string => Boolean(v)),
   emailAndPassword: {
     enabled: true,
   },

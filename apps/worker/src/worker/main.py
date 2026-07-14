@@ -24,6 +24,7 @@ from .contracts import (
     PhotoProcessJob,
     SelfieEnrollJob,
 )
+from .enroll import enroll_selfie
 from .pipeline import process_photo
 
 logging.basicConfig(level=logging.INFO, format="[%(name)s] %(message)s")
@@ -53,8 +54,25 @@ async def handle_photo(job, job_token):
 
 async def handle_selfie(job, job_token):
     payload = SelfieEnrollJob.model_validate(job.data)
-    log.info("selfie.enroll received for participant %s (matching lands in M2)", payload.participantId)
-    return {"skeleton": True}
+    try:
+        return await asyncio.to_thread(
+            enroll_selfie, payload.participantId, payload.eventId, payload.s3Key
+        )
+    except Exception:
+        log.exception("enrollment failed for participant %s", payload.participantId)
+        try:
+            with db.connect() as conn:
+                conn.execute(
+                    """UPDATE event_participants
+                       SET enrollment_status = 'failed'::"EnrollmentStatus",
+                           enrollment_error = 'internal_error'
+                       WHERE id = %s""",
+                    (payload.participantId,),
+                )
+                conn.commit()
+        except Exception:
+            log.exception("could not mark enrollment failed")
+        raise
 
 
 async def main() -> None:

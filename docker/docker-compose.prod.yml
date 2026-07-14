@@ -1,0 +1,171 @@
+# Production stack — TrueNAS / any Docker host.
+#   cp .env.production.example .env.production   (fill it in!)
+#   docker compose -f docker/docker-compose.prod.yml --env-file .env.production up -d --build
+# Internet reachability comes from the cloudflared tunnel (no open ports
+# except the camera's FTP). Guide: docs/setup/deploy-truenas.md
+name: sonyrec
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: sonyrec
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in .env.production}
+      POSTGRES_DB: sonyrec
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sonyrec -d sonyrec"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redisdata:/data
+    command: ["redis-server", "--appendonly", "yes"]
+
+  minio:
+    image: minio/minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY:?}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:?}
+    volumes:
+      - miniodata:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  minio-init:
+    image: minio/mc
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 ${S3_ACCESS_KEY} ${S3_SECRET_KEY} &&
+      mc mb --ignore-existing local/${S3_BUCKET} &&
+      echo bucket ready
+      "
+
+  # One-shot: applies database migrations, then exits.
+  migrate:
+    build:
+      context: ..
+      dockerfile: apps/ingest/Dockerfile
+    working_dir: /repo/packages/db
+    command: ["node_modules/.bin/prisma", "migrate", "deploy"]
+    environment:
+      DATABASE_URL: postgresql://sonyrec:${POSTGRES_PASSWORD}@postgres:5432/sonyrec
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  web:
+    build:
+      context: ..
+      dockerfile: apps/web/Dockerfile
+    restart: unless-stopped
+    environment: &app-env
+      NODE_ENV: production
+      DATABASE_URL: postgresql://sonyrec:${POSTGRES_PASSWORD}@postgres:5432/sonyrec
+      REDIS_URL: redis://redis:6379
+      S3_ENDPOINT: ${S3_PUBLIC_ENDPOINT:?}
+      S3_REGION: us-east-1
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
+      S3_BUCKET: ${S3_BUCKET}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?}
+      BETTER_AUTH_URL: ${APP_URL:?}
+      NEXT_PUBLIC_APP_URL: ${APP_URL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  ingest:
+    build:
+      context: ..
+      dockerfile: apps/ingest/Dockerfile
+    restart: unless-stopped
+    environment:
+      <<: *app-env
+      # Ingest talks to MinIO directly on the internal network (fast path);
+      # only browser-facing signed URLs need the public endpoint.
+      S3_ENDPOINT: http://minio:9000
+      FTP_PORT: "2121"
+      FTP_PASV_HOST: ${FTP_PASV_HOST:?LAN IP of this machine}
+      FTP_PASV_MIN: "30000"
+      FTP_PASV_MAX: "30009"
+    ports:
+      - "2121:2121"
+      - "30000-30009:30000-30009"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  worker:
+    build:
+      context: ../apps/worker
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://sonyrec:${POSTGRES_PASSWORD}@postgres:5432/sonyrec
+      REDIS_URL: redis://redis:6379
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
+      S3_BUCKET: ${S3_BUCKET}
+    volumes:
+      - models:/root/.insightface
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ROUTE OPTION A (default, "direct"): Caddy terminates HTTPS with
+  # automatic certificates. Needs DNS A records pointing at this server
+  # and ports 80/443 open. Start with:  --profile direct
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    profiles: ["direct"]
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      APP_HOST: ${APP_HOST:-}
+      S3_HOST: ${S3_HOST:-}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddydata:/data
+    depends_on:
+      - web
+      - minio
+
+  # ROUTE OPTION B ("tunnel"): outbound-only Cloudflare tunnel — for hosts
+  # behind NAT (e.g. a home NAS). Start with:  --profile tunnel
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    profiles: ["tunnel"]
+    command: ["tunnel", "run", "--token", "${CLOUDFLARE_TUNNEL_TOKEN:-}"]
+    depends_on:
+      - web
+      - minio
+
+volumes:
+  pgdata:
+  redisdata:
+  miniodata:
+  models:
+  caddydata:
