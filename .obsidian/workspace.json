@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "docs/setup/deploy-vps.md",
+                "file": "SECURITY.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "deploy-vps"
+              "title": "SECURITY"
             }
           }
         ]
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "docs/setup/deploy-vps.md",
+                "file": "SECURITY.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for deploy-vps"
+              "title": "Backlinks for SECURITY"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "docs/setup/deploy-vps.md",
+                "file": "SECURITY.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from deploy-vps"
+              "title": "Outgoing links from SECURITY"
             }
           },
           {
@@ -156,13 +156,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "docs/setup/deploy-vps.md",
+                "file": "SECURITY.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of deploy-vps"
+              "title": "Outline of SECURITY"
             }
           }
         ]
@@ -185,9 +185,9 @@
   },
   "active": "db34279ff076dc25",
   "lastOpenFiles": [
+    "docs/setup/deploy-vps.md",
     "docker/Caddyfile",
     "docs/design/07-milestones.md",
-    "docs/setup/deploy-vps.md",
     "docs/setup/deploy-truenas.md",
     "docker/docker-compose.prod.yml",
     "apps/ingest/Dockerfile",
@@ -199,7 +199,6 @@
     "packages/db/prisma/migrations/20260714182855_init/migration.sql",
     "packages/db/prisma/migrations/20260714182855_init",
     "docs/setup/m2-attendee-test.md",
-    "apps/worker/src/worker/__pycache__/matching.cpython-310.pyc",
     "docs/setup/m1-camera-test.md",
     "CONTRIBUTING.md",
     "README.md",
