@@ -88,7 +88,7 @@ export function CameraPanel({ eventId }: { eventId: string }) {
           <button
             onClick={create}
             disabled={busy}
-            className="bg-white px-4 py-2 text-sm font-semibold tracking-wide text-black uppercase hover:bg-white/80 disabled:opacity-40"
+            className="border border-white bg-transparent px-4 py-2 text-sm font-semibold tracking-wide text-white uppercase transition-colors hover:bg-white hover:text-black disabled:opacity-40"
           >
             {busy ? "…" : "Add camera"}
           </button>

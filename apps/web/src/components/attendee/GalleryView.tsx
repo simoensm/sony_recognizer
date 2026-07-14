@@ -80,7 +80,7 @@ export function GalleryView({
           <div className="flex gap-3" onClick={(e) => e.stopPropagation()}>
             <a
               href={`/api/v1/photos/${open.id}/download`}
-              className="bg-white px-6 py-2.5 font-semibold tracking-wide text-black uppercase hover:bg-white/80"
+              className="border border-white bg-transparent px-6 py-2.5 font-semibold tracking-wide text-white uppercase transition-colors hover:bg-white hover:text-black"
             >
               Download
             </a>

@@ -14,6 +14,12 @@ export function AppHeader({ userName }: { userName: string }) {
           </span>
         </Link>
         <nav className="flex items-center gap-6 text-sm text-white/60">
+          <a
+            href="https://www.abovebelgium.be/en"
+            className="hidden hover:text-white sm:inline"
+          >
+            abovebelgium.be ↗
+          </a>
           <Link href="/dashboard" className="hover:text-white">
             Events
           </Link>

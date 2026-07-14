@@ -16,7 +16,7 @@ export default async function EventJoinPage({
   if (!resolved) notFound();
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-6 px-6 py-12">
+    <main className="mx-auto flex flex-1 min-h-0 w-full max-w-md flex-col justify-center gap-6 px-6 py-12">
       <div className="flex flex-col items-center text-center">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/above-logo.svg" alt="Above Belgium" className="h-14 w-auto" />

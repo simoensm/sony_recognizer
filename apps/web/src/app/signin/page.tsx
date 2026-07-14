@@ -28,7 +28,7 @@ export default function SignInPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-8 px-6">
+    <main className="mx-auto flex flex-1 min-h-0 w-full max-w-sm flex-col justify-center gap-8 px-6">
       <div>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/above-logo.svg" alt="Above Belgium" className="h-14 w-auto" />
@@ -41,7 +41,7 @@ export default function SignInPage() {
           className="border border-white/20 bg-transparent px-4 py-2.5 focus:border-white focus:outline-none" />
         {error && <p className="text-sm text-red-400">{error}</p>}
         <button disabled={busy}
-          className="bg-white px-4 py-2.5 font-semibold tracking-wide text-black uppercase hover:bg-white/80 disabled:opacity-40">
+          className="border border-white bg-transparent px-4 py-2.5 font-semibold tracking-wide text-white uppercase transition-colors hover:bg-white hover:text-black disabled:opacity-40">
           {busy ? "Signing in…" : "Sign in"}
         </button>
       </form>

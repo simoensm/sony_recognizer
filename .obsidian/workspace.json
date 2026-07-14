@@ -185,6 +185,7 @@
   },
   "active": "db34279ff076dc25",
   "lastOpenFiles": [
+    "apps/web/src/components/SiteFooter.tsx",
     "apps/web/public/fond-above.jpg",
     "apps/web/public/above-logo.svg",
     "apps/web/public",

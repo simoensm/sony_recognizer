@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+/* Typography matched to abovebelgium.be (extracted from its stylesheet):
+   Open Sans for body text, Roboto (weight 500) for headings. */
+body {
+  font-family: var(--font-opensans), ui-sans-serif, sans-serif;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-roboto), ui-sans-serif, sans-serif;
+}
+
 /* Above Belgium starry-sky background — fixed so content scrolls over it.
    Solid black underneath keeps text readable while the image loads. */
 body {

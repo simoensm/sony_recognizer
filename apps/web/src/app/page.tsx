@@ -1,7 +1,7 @@
 /** Landing — Above Belgium monochrome. */
 export default function Home() {
   return (
-    <main className="mx-auto flex min-h-screen max-w-3xl flex-col items-center justify-center gap-8 px-6 text-center">
+    <main className="mx-auto flex flex-1 min-h-0 w-full max-w-3xl flex-col items-center justify-center gap-8 px-6 text-center">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/above-logo.svg" alt="Above Belgium" className="h-24 w-auto" />
       <h1 className="text-4xl font-bold tracking-wide uppercase sm:text-5xl">
@@ -14,7 +14,7 @@ export default function Home() {
       <div className="flex gap-4 text-sm">
         <a
           href="/dashboard"
-          className="bg-white px-6 py-3 font-semibold tracking-wide text-black uppercase hover:bg-white/80"
+          className="border border-white bg-transparent px-6 py-3 font-semibold tracking-wide text-white uppercase transition-colors hover:bg-white hover:text-black"
         >
           Photographer dashboard
         </a>

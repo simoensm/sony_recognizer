@@ -54,7 +54,7 @@ export function PasswordForm() {
       )}
       <button
         disabled={busy}
-        className="self-start bg-white px-6 py-2 text-sm font-semibold tracking-wide text-black uppercase hover:bg-white/80 disabled:opacity-40"
+        className="self-start border border-white bg-transparent px-6 py-2 text-sm font-semibold tracking-wide text-white uppercase transition-colors hover:bg-white hover:text-black disabled:opacity-40"
       >
         {busy ? "Changing…" : "Change password"}
       </button>

@@ -117,7 +117,7 @@ export function JoinFlow({ qrToken, eventId }: { qrToken: string; eventId: strin
         <button
           onClick={join}
           disabled={!consented || busy}
-          className="bg-white px-4 py-3 font-semibold tracking-wide text-black uppercase hover:bg-white/80 disabled:opacity-40"
+          className="border border-white bg-transparent px-4 py-3 font-semibold tracking-wide text-white uppercase transition-colors hover:bg-white hover:text-black disabled:opacity-40"
         >
           {busy ? "One moment…" : "Continue"}
         </button>
@@ -146,7 +146,7 @@ export function JoinFlow({ qrToken, eventId }: { qrToken: string; eventId: strin
         <button
           onClick={() => fileRef.current?.click()}
           disabled={busy}
-          className="bg-white px-4 py-3 font-semibold tracking-wide text-black uppercase hover:bg-white/80 disabled:opacity-40"
+          className="border border-white bg-transparent px-4 py-3 font-semibold tracking-wide text-white uppercase transition-colors hover:bg-white hover:text-black disabled:opacity-40"
         >
           {busy ? "Uploading…" : step === "failed" ? "Retake selfie" : "Take selfie"}
         </button>

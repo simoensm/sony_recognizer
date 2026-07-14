@@ -1,5 +1,19 @@
 import type { Metadata } from "next";
+import { Roboto, Open_Sans } from "next/font/google";
+import { SiteFooter } from "@/components/SiteFooter";
 import "./globals.css";
+
+// The same fonts as abovebelgium.be: Roboto for headings, Open Sans for body.
+const roboto = Roboto({
+  subsets: ["latin"],
+  weight: ["500", "700"],
+  variable: "--font-roboto",
+});
+const openSans = Open_Sans({
+  subsets: ["latin"],
+  weight: ["300", "400", "700"],
+  variable: "--font-opensans",
+});
 
 export const metadata: Metadata = {
   title: "Above Photos — your photos find you",
@@ -12,8 +26,11 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-black text-white antialiased">
+      <body
+        className={`${roboto.variable} ${openSans.variable} flex min-h-screen flex-col bg-black text-white antialiased`}
+      >
         {children}
+        <SiteFooter />
       </body>
     </html>
   );
