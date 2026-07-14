@@ -36,6 +36,8 @@ ENV NODE_ENV=production
 # Next "standalone" output = server + exactly the node_modules it needs.
 COPY --from=build /repo/apps/web/.next/standalone ./
 COPY --from=build /repo/apps/web/.next/static ./apps/web/.next/static
+# Static assets (logo, background) — NOT included in standalone by design.
+COPY --from=build /repo/apps/web/public ./apps/web/public
 EXPOSE 3000
 ENV HOSTNAME=0.0.0.0 PORT=3000
 CMD ["node", "apps/web/server.js"]
