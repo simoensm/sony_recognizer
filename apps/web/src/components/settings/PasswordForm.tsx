@@ -33,7 +33,7 @@ export function PasswordForm() {
   }
 
   return (
-    <form onSubmit={change} className="mt-4 flex flex-col gap-4 border border-white/10 p-6">
+    <form onSubmit={change} className="panel mt-4 flex flex-col gap-4 border border-white/10 p-6">
       {(["current", "new", "confirm"] as const).map((field) => (
         <label key={field} className="flex flex-col gap-1.5 text-sm">
           <span className="text-white/50">

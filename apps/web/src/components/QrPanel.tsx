@@ -11,7 +11,7 @@ export async function QrPanel({ joinUrl }: { joinUrl: string }) {
   });
 
   return (
-    <section className="border border-white/10 p-6">
+    <section className="panel border border-white/10 p-6">
       <h2 className="text-sm font-semibold tracking-[0.2em] text-white/50 uppercase">
         Attendee QR
       </h2>

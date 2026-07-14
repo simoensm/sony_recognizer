@@ -1,1 +1,19 @@
 @import "tailwindcss";
+
+/* Above Belgium starry-sky background — fixed so content scrolls over it.
+   Solid black underneath keeps text readable while the image loads. */
+body {
+  background-color: #000;
+  background-image: url("/fond-above.jpg");
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
+
+/* Give bordered panels a whisper of black backing so the stars never
+   fight with text inside cards. */
+@utility panel {
+  background-color: rgb(0 0 0 / 0.55);
+  backdrop-filter: blur(2px);
+}

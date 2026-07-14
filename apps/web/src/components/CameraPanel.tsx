@@ -68,7 +68,7 @@ export function CameraPanel({ eventId }: { eventId: string }) {
   }
 
   return (
-    <section className="border border-white/10 p-6">
+    <section className="panel border border-white/10 p-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h2 className="text-sm font-semibold tracking-[0.2em] text-white/50 uppercase">

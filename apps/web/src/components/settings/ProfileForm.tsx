@@ -18,7 +18,7 @@ export function ProfileForm({ initialName, email }: { initialName: string; email
   }
 
   return (
-    <form onSubmit={save} className="mt-4 flex flex-col gap-4 border border-white/10 p-6">
+    <form onSubmit={save} className="panel mt-4 flex flex-col gap-4 border border-white/10 p-6">
       <label className="flex flex-col gap-1.5 text-sm">
         <span className="text-white/50">Name</span>
         <input

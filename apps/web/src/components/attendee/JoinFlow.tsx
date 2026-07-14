@@ -96,7 +96,7 @@ export function JoinFlow({ qrToken, eventId }: { qrToken: string; eventId: strin
 
   if (step === "consent") {
     return (
-      <div className="flex flex-col gap-5 border border-white/15 p-6">
+      <div className="panel flex flex-col gap-5 border border-white/15 p-6">
         <p className="text-sm leading-relaxed text-white/70">
           Take one selfie and instantly get every event photo you appear in.
         </p>
@@ -127,7 +127,7 @@ export function JoinFlow({ qrToken, eventId }: { qrToken: string; eventId: strin
 
   if (step === "selfie" || step === "failed") {
     return (
-      <div className="flex flex-col gap-5 border border-white/15 p-6 text-center">
+      <div className="panel flex flex-col gap-5 border border-white/15 p-6 text-center">
         <p className="text-sm text-white/70">
           {step === "failed" ? "Let's try that again." : "Now take a selfie 🤳"}
         </p>
@@ -155,7 +155,7 @@ export function JoinFlow({ qrToken, eventId }: { qrToken: string; eventId: strin
   }
 
   return (
-    <div className="flex flex-col items-center gap-4 border border-white/15 p-8 text-center">
+    <div className="panel flex flex-col items-center gap-4 border border-white/15 p-8 text-center">
       <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white" />
       <p className="text-sm text-white/70">Finding your photos…</p>
       <p className="text-xs text-white/40">This usually takes a few seconds.</p>

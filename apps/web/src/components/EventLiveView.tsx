@@ -63,7 +63,7 @@ export function EventLiveView({ eventId }: { eventId: string }) {
 
       <div className="mt-4 grid grid-cols-2 gap-px border border-white/10 bg-white/10 sm:grid-cols-5">
         {counters.map((c) => (
-          <div key={c.label} className="bg-black p-5 text-center">
+          <div key={c.label} className="panel p-5 text-center">
             <p className="text-3xl font-bold">{c.value}</p>
             <p className="mt-1 text-xs tracking-[0.15em] text-white/40 uppercase">{c.label}</p>
           </div>
