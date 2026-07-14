@@ -1,0 +1,496 @@
+// ============================================================
+// Database schema — the single source of truth for all data.
+// Mechanical translation of docs/design/04-database.md.
+//
+// Conventions:
+// - Table/column names are snake_case in Postgres (@@map/@map),
+//   camelCase in TypeScript.
+// - All primary keys are UUIDv7: time-ordered (index-friendly)
+//   and unguessable (anti-enumeration, docs/design/06 T1).
+// - Face embeddings use pgvector's halfvec type; Prisma cannot
+//   query them natively, so vector search happens via raw SQL.
+// ============================================================
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [vector]
+}
+
+// ------------------------------------------------------------
+// Identity & auth (shape required by Better Auth + our fields)
+// ------------------------------------------------------------
+
+model User {
+  id            String    @id @default(uuid(7))
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false) @map("email_verified")
+  image         String?
+  // Set by Better Auth's anonymous plugin: attendee before signup (design 01 §2.1)
+  isAnonymous   Boolean?  @default(false) @map("is_anonymous")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  // Soft-delete/pseudonymization marker for GDPR erasure (design 04 §3)
+  deletedAt     DateTime? @map("deleted_at")
+
+  sessions       Session[]
+  accounts       Account[]
+  orgMemberships OrgMember[]
+  participations EventParticipant[]
+  consents       Consent[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(uuid(7))
+  expiresAt DateTime @map("expires_at")
+  token     String   @unique
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model Account {
+  id                    String    @id @default(uuid(7))
+  accountId             String    @map("account_id")
+  providerId            String    @map("provider_id")
+  userId                String    @map("user_id")
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?   @map("access_token")
+  refreshToken          String?   @map("refresh_token")
+  idToken               String?   @map("id_token")
+  accessTokenExpiresAt  DateTime? @map("access_token_expires_at")
+  refreshTokenExpiresAt DateTime? @map("refresh_token_expires_at")
+  scope                 String?
+  password              String? // bcrypt/scrypt hash for email+password auth
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@map("accounts")
+}
+
+model Verification {
+  id         String   @id @default(uuid(7))
+  identifier String
+  value      String
+  expiresAt  DateTime @map("expires_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@index([identifier])
+  @@map("verifications")
+}
+
+// ------------------------------------------------------------
+// Tenancy
+// ------------------------------------------------------------
+
+enum OrgRole {
+  owner
+  admin
+  photographer
+}
+
+model Organization {
+  id        String   @id @default(uuid(7))
+  name      String
+  slug      String   @unique
+  plan      String   @default("free")
+  settings  Json     @default("{}")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  members OrgMember[]
+  events  Event[]
+
+  @@map("organizations")
+}
+
+// M:N users <-> organizations. Role is contextual, not intrinsic (design 04 §2).
+model OrgMember {
+  id        String       @id @default(uuid(7))
+  orgId     String       @map("org_id")
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  userId    String       @map("user_id")
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      OrgRole
+  createdAt DateTime     @default(now()) @map("created_at")
+
+  eventAssignments EventPhotographer[]
+
+  @@unique([orgId, userId])
+  @@map("org_members")
+}
+
+// ------------------------------------------------------------
+// Events
+// ------------------------------------------------------------
+
+enum EventStatus {
+  draft
+  live
+  closed
+  archived
+}
+
+model Event {
+  id       String       @id @default(uuid(7))
+  orgId    String       @map("org_id")
+  org      Organization @relation(fields: [orgId], references: [id])
+  name     String
+  slug     String
+  venue    String?
+  startsAt DateTime?    @map("starts_at")
+  endsAt   DateTime?    @map("ends_at")
+  status   EventStatus  @default(draft)
+  // Per-event knobs: autoPublish, matchThreshold, retentionDays, watermark…
+  // (design 01 §2.4, 03 §3). jsonb because they vary by event type.
+  settings  Json      @default("{}")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  photographers     EventPhotographer[]
+  ftpCredentials    FtpCredential[]
+  qrCodes           QrCode[]
+  albums            Album[]
+  photos            Photo[]
+  participants      EventParticipant[]
+  exclusionRequests ExclusionRequest[]
+
+  @@unique([orgId, slug])
+  @@index([orgId, status])
+  @@map("events")
+}
+
+// M:N events <-> org_members: shooting rights derive from org membership,
+// so access dies automatically when someone leaves the org (design 04 §2).
+model EventPhotographer {
+  id          String    @id @default(uuid(7))
+  eventId     String    @map("event_id")
+  event       Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  orgMemberId String    @map("org_member_id")
+  orgMember   OrgMember @relation(fields: [orgMemberId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  photos Photo[]
+
+  @@unique([eventId, orgMemberId])
+  @@map("event_photographers")
+}
+
+// Per-EVENT camera credentials: a leaked credential compromises
+// one closed event only (design 04 §2 — blast-radius containment).
+model FtpCredential {
+  id           String    @id @default(uuid(7))
+  eventId      String    @map("event_id")
+  event        Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  username     String    @unique
+  passwordHash String    @map("password_hash")
+  s3Prefix     String    @map("s3_prefix")
+  label        String? // e.g. "Camera body A"
+  expiresAt    DateTime  @map("expires_at")
+  revokedAt    DateTime? @map("revoked_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  @@map("ftp_credentials")
+}
+
+// Separate table (not a column on events): multiple posters per event
+// with independent analytics, and revocable without changing the event.
+model QrCode {
+  id        String    @id @default(uuid(7))
+  eventId   String    @map("event_id")
+  event     Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  token     String    @unique // unguessable value encoded in the QR image
+  label     String? // e.g. "Entrance poster"
+  scanCount Int       @default(0) @map("scan_count")
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  joinedParticipants EventParticipant[]
+
+  @@map("qr_codes")
+}
+
+// ------------------------------------------------------------
+// Photos & faces
+// ------------------------------------------------------------
+
+enum PhotoStatus {
+  ingested
+  processing
+  processed
+  failed
+  quarantined
+}
+
+model Album {
+  id        String   @id @default(uuid(7))
+  eventId   String   @map("event_id")
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  photos Photo[]
+
+  @@map("albums")
+}
+
+model Photo {
+  id      String @id @default(uuid(7))
+  eventId String @map("event_id")
+  event   Event  @relation(fields: [eventId], references: [id])
+  albumId String? @map("album_id")
+  album   Album?  @relation(fields: [albumId], references: [id], onDelete: SetNull)
+  // Nullable: FTP uploads attribute via credential, not a logged-in user.
+  uploadedById String?            @map("uploaded_by_id")
+  uploadedBy   EventPhotographer? @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+  // sha256 of file content — dedupe key against camera/FTP retries (design 01 §3.4)
+  contentHash String      @map("content_hash")
+  s3Key       String      @map("s3_key")
+  width       Int?
+  height      Int?
+  exif        Json        @default("{}")
+  status      PhotoStatus @default(ingested)
+  published   Boolean     @default(false)
+  publishedAt DateTime?   @map("published_at")
+  capturedAt  DateTime?   @map("captured_at")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  deletedAt   DateTime?   @map("deleted_at")
+
+  faces     Face[]
+  matches   Match[]
+  downloads Download[]
+
+  @@unique([eventId, contentHash])
+  @@index([eventId, status])
+  @@index([eventId, capturedAt])
+  @@map("photos")
+}
+
+// One row per detected face. Deleting a photo CASCADE-deletes its faces
+// (and their embeddings) — GDPR erasure by construction (design 04 §3).
+model Face {
+  id      String @id @default(uuid(7))
+  photoId String @map("photo_id")
+  photo   Photo  @relation(fields: [photoId], references: [id], onDelete: Cascade)
+  // Deliberately denormalized from photo: the vector search filters on it
+  // and must not join photos inside the index scan (design 04 §2).
+  eventId String @map("event_id")
+  // Bounding box (pixels) + idempotency key for safe job retries
+  bboxX          Int    @map("bbox_x")
+  bboxY          Int    @map("bbox_y")
+  bboxW          Int    @map("bbox_w")
+  bboxH          Int    @map("bbox_h")
+  bboxHash       String @map("bbox_hash")
+  detectionScore Float  @map("detection_score")
+  qualityScore   Float  @map("quality_score")
+  landmarks      Json   @default("{}")
+  // 512-d fp16 embedding. Unsupported = Prisma stores it, raw SQL queries it.
+  // HNSW index added by raw SQL migration in M1 when we first write vectors.
+  embedding Unsupported("halfvec(512)")?
+  createdAt DateTime                     @default(now()) @map("created_at")
+
+  matches Match[]
+
+  @@unique([photoId, bboxHash])
+  @@index([eventId])
+  @@map("faces")
+}
+
+// ------------------------------------------------------------
+// Participation, enrollment & matching
+// ------------------------------------------------------------
+
+enum ParticipantStatus {
+  active
+  withdrawn
+}
+
+// The authorization anchor: no participant row → no gallery (design 04 §2).
+model EventParticipant {
+  id      String  @id @default(uuid(7))
+  eventId String  @map("event_id")
+  event   Event   @relation(fields: [eventId], references: [id])
+  // Nullable during the anonymous phase (design 01 §2.1); linked on signup.
+  userId String? @map("user_id")
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  anonymousSessionId String? @map("anonymous_session_id")
+  joinedViaQrId      String? @map("joined_via_qr_id")
+  joinedViaQr        QrCode? @relation(fields: [joinedViaQrId], references: [id], onDelete: SetNull)
+  consentId          String? @map("consent_id")
+  consent            Consent? @relation(fields: [consentId], references: [id])
+  status             ParticipantStatus @default(active)
+  createdAt          DateTime          @default(now()) @map("created_at")
+
+  identities FaceIdentity[]
+  matches    Match[]
+  downloads  Download[]
+
+  @@unique([eventId, userId])
+  @@index([anonymousSessionId])
+  @@map("event_participants")
+}
+
+enum IdentitySource {
+  selfie
+  confirmed_centroid
+}
+
+// Enrolled selfie embeddings — separate from `faces` because the lifecycle
+// differs: identities are consented enrollment data, deleted with the
+// participation; faces derive from event photos and expire with retention.
+model FaceIdentity {
+  id            String           @id @default(uuid(7))
+  participantId String           @map("participant_id")
+  participant   EventParticipant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  eventId       String           @map("event_id")
+  source        IdentitySource   @default(selfie)
+  selfieS3Key   String?          @map("selfie_s3_key")
+  embedding     Unsupported("halfvec(512)")?
+  active        Boolean          @default(true)
+  createdAt     DateTime         @default(now()) @map("created_at")
+
+  matches Match[]
+
+  @@index([eventId, active])
+  @@map("face_identities")
+}
+
+enum MatchStatus {
+  auto
+  pending_confirmation
+  confirmed
+  rejected
+  suppressed
+}
+
+// The "money table": face X belongs to participant Y with score Z.
+// photo_id / participant_id / event_id are denormalized so the gallery
+// query is one index scan with zero joins (design 04 §2).
+model Match {
+  id         String          @id @default(uuid(7))
+  faceId     String          @map("face_id")
+  face       Face            @relation(fields: [faceId], references: [id], onDelete: Cascade)
+  identityId String       @map("identity_id")
+  identity   FaceIdentity @relation(fields: [identityId], references: [id], onDelete: Cascade)
+  photoId       String           @map("photo_id")
+  photo         Photo            @relation(fields: [photoId], references: [id], onDelete: Cascade)
+  participantId String           @map("participant_id")
+  participant   EventParticipant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  eventId       String           @map("event_id")
+  score         Float
+  status        MatchStatus
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+
+  @@unique([faceId, identityId])
+  @@index([participantId, status])
+  @@map("matches")
+}
+
+// ------------------------------------------------------------
+// Consent, delivery & accountability
+// ------------------------------------------------------------
+
+enum ConsentKind {
+  biometric_processing
+  marketing
+}
+
+// Append-only: withdrawal sets withdrawn_at, never deletes — we must be
+// able to PROVE consent existed at processing time (GDPR accountability).
+model Consent {
+  id            String      @id @default(uuid(7))
+  userId        String      @map("user_id")
+  user          User        @relation(fields: [userId], references: [id])
+  kind          ConsentKind
+  eventId       String?     @map("event_id") // null = account-wide
+  policyVersion String      @map("policy_version")
+  grantedAt     DateTime    @default(now()) @map("granted_at")
+  withdrawnAt   DateTime?   @map("withdrawn_at")
+
+  participations EventParticipant[]
+
+  @@index([userId, kind])
+  @@map("consents")
+}
+
+enum DownloadVariant {
+  preview
+  original
+}
+
+// Every download logged: photographer analytics, future billing,
+// and the audit trail for original-file egress (design 04 §2).
+model Download {
+  id            String           @id @default(uuid(7))
+  participantId String           @map("participant_id")
+  participant   EventParticipant @relation(fields: [participantId], references: [id])
+  photoId       String           @map("photo_id")
+  photo         Photo            @relation(fields: [photoId], references: [id])
+  variant       DownloadVariant
+  ip            String?
+  userAgent     String?          @map("user_agent")
+  createdAt     DateTime         @default(now()) @map("created_at")
+
+  @@index([participantId])
+  @@index([photoId])
+  @@map("downloads")
+}
+
+enum ExclusionStatus {
+  pending
+  processed
+  rejected
+}
+
+// GDPR path for NON-users photographed at an event (design 01 §2.6):
+// they submit a selfie, matching faces get suppressed. The embedding
+// is deleted right after processing.
+model ExclusionRequest {
+  id           String          @id @default(uuid(7))
+  eventId      String          @map("event_id")
+  event        Event           @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  contactEmail String          @map("contact_email")
+  selfieS3Key  String?         @map("selfie_s3_key")
+  embedding    Unsupported("halfvec(512)")?
+  status       ExclusionStatus @default(pending)
+  createdAt    DateTime        @default(now()) @map("created_at")
+  processedAt  DateTime?       @map("processed_at")
+
+  @@map("exclusion_requests")
+}
+
+// Append-only, deliberately NO foreign keys: audit entries must survive
+// the deletion of the things they describe (design 04 §2).
+model AuditLog {
+  id         String   @id @default(uuid(7))
+  orgId      String?  @map("org_id")
+  actorType  String   @map("actor_type") // user | system | worker
+  actorId    String?  @map("actor_id")
+  action     String // e.g. photo.unpublished, consent.withdrawn, erasure.completed
+  entityType String   @map("entity_type")
+  entityId   String?  @map("entity_id")
+  metadata   Json     @default("{}")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([orgId, createdAt])
+  @@index([entityType, entityId])
+  @@map("audit_logs")
+}

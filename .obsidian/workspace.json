@@ -1,0 +1,212 @@
+{
+  "main": {
+    "id": "245746049048860f",
+    "type": "split",
+    "children": [
+      {
+        "id": "9ddbeeafe44424f0",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "db34279ff076dc25",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "docs/design/07-milestones.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "07-milestones"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "965127261b4cc265",
+    "type": "split",
+    "children": [
+      {
+        "id": "8cc14a5293333f5c",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "16fb996d708ef2ea",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "cbc88732c205fd77",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "1255b4ef58a044e9",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "77bb7e147ecb2a4f",
+    "type": "split",
+    "children": [
+      {
+        "id": "32a249d5b382c50b",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "776c19e514bbe102",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "docs/design/07-milestones.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for 07-milestones"
+            }
+          },
+          {
+            "id": "2069678a52d77755",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "docs/design/07-milestones.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from 07-milestones"
+            }
+          },
+          {
+            "id": "c9ab948955c5429f",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "d12721d38587e5fe",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "a83515522d5770bb",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "docs/design/07-milestones.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of 07-milestones"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "db34279ff076dc25",
+  "lastOpenFiles": [
+    "apps/web/next-env.d.ts",
+    "packages/db/prisma/migrations/20260714145935_init/migration.sql",
+    "packages/db/prisma/migrations/migration_lock.toml",
+    "packages/db/prisma/migrations/20260714145935_init",
+    "packages/db/prisma/migrations",
+    "pnpm-lock.yaml",
+    "packages/queue/node_modules",
+    "packages/db/node_modules/@prisma",
+    "packages/db/node_modules",
+    "packages/core/node_modules/@sr",
+    "packages/core/node_modules",
+    "CONTRIBUTING.md",
+    "README.md",
+    "SECURITY.md",
+    "apps/worker/README.md",
+    "docs/design/README.md",
+    "docs/design/07-milestones.md",
+    "docs/design/06-security-privacy.md",
+    "docs/design/05-api.md",
+    "docs/design/04-database.md",
+    "docs/design/03-ai-pipeline.md",
+    "docs/design/02-architecture.md",
+    "docs/design/01-requirements-and-risks.md"
+  ]
+}

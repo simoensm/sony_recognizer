@@ -1,0 +1,22 @@
+{
+  "name": "sony-recognizer",
+  "private": true,
+  "packageManager": "pnpm@10.12.1",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "db:generate": "pnpm --filter @sr/db db:generate",
+    "db:migrate": "pnpm --filter @sr/db db:migrate",
+    "db:studio": "pnpm --filter @sr/db db:studio",
+    "stack:up": "docker compose -f docker/docker-compose.dev.yml up -d",
+    "stack:down": "docker compose -f docker/docker-compose.dev.yml down"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.0"
+  }
+}

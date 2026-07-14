@@ -1,0 +1,21 @@
+{
+  "name": "@sr/ingest",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --env-file=../../.env --import tsx --watch src/index.ts",
+    "start": "node --env-file=../../.env --import tsx src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@sr/config": "workspace:*",
+    "@sr/db": "workspace:*",
+    "@sr/queue": "workspace:*",
+    "bullmq": "^5.49.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0"
+  }
+}

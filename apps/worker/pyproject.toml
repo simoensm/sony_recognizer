@@ -1,0 +1,31 @@
+[project]
+name = "sr-worker"
+version = "0.0.0"
+description = "AI worker: face detection, embeddings, matching (docs/design/03)"
+requires-python = ">=3.11"
+dependencies = [
+    "bullmq>=2.0",      # same Redis job structures as the TypeScript side
+    "redis>=5.0",
+    "pydantic>=2.0",    # validates job payloads against packages/queue contracts
+]
+
+[project.optional-dependencies]
+# Heavy ML dependencies — installed in M1 when the pipeline is built.
+# Kept optional so contributors can run the skeleton without a 2 GB download.
+ml = [
+    "insightface>=0.7",
+    "onnxruntime>=1.18",         # swap for onnxruntime-gpu on GPU boxes
+    "opencv-python-headless>=4.9",
+    "numpy>=1.26",
+]
+dev = [
+    "ruff>=0.4",
+    "pytest>=8.0",
+]
+
+[tool.ruff]
+line-length = 100
+src = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
