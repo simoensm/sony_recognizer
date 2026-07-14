@@ -21,7 +21,7 @@ export default async function EventJoinPage({
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/above-logo.svg" alt="Above Belgium" className="h-14 w-auto" />
         <h1 className="mt-4 text-3xl font-bold tracking-wide uppercase">{resolved.eventName}</h1>
-        {resolved.venue && <p className="mt-1 text-white/50">{resolved.venue}</p>}
+        {resolved.venue && <p className="mt-1 text-white/75">{resolved.venue}</p>}
       </div>
       <JoinFlow qrToken={token} eventId={resolved.eventId} />
     </main>

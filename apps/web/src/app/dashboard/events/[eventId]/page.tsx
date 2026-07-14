@@ -30,13 +30,13 @@ export default async function EventPage({
 
   return (
     <>
-      <AppHeader userName={session.user.name} />
+      <AppHeader />
       <main className="mx-auto max-w-5xl px-6 py-10">
-        <Link href="/dashboard" className="text-xs tracking-[0.2em] text-white/40 uppercase hover:text-white">
+        <Link href="/dashboard" className="text-xs tracking-[0.2em] text-white/65 uppercase hover:text-white">
           ← Events
         </Link>
         <h1 className="mt-2 text-3xl font-bold tracking-wide uppercase">{event.name}</h1>
-        {event.venue && <p className="mt-1 text-white/50">{event.venue}</p>}
+        {event.venue && <p className="mt-1 text-white/75">{event.venue}</p>}
 
         <div className="mt-10 flex flex-col gap-8">
           <EventLiveView eventId={event.id} />

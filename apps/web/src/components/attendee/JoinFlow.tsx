@@ -97,10 +97,10 @@ export function JoinFlow({ qrToken, eventId }: { qrToken: string; eventId: strin
   if (step === "consent") {
     return (
       <div className="panel flex flex-col gap-5 border border-white/15 p-6">
-        <p className="text-sm leading-relaxed text-white/70">
+        <p className="text-sm leading-relaxed text-white/85">
           Take one selfie and instantly get every event photo you appear in.
         </p>
-        <label className="flex cursor-pointer items-start gap-3 text-sm text-white/70">
+        <label className="flex cursor-pointer items-start gap-3 text-sm text-white/85">
           <input
             type="checkbox"
             checked={consented}
@@ -117,7 +117,7 @@ export function JoinFlow({ qrToken, eventId }: { qrToken: string; eventId: strin
         <button
           onClick={join}
           disabled={!consented || busy}
-          className="border border-white bg-transparent px-4 py-3 font-semibold tracking-wide text-white uppercase transition-colors hover:bg-white hover:text-black disabled:opacity-40"
+          className="rounded-xl border border-white bg-transparent px-4 py-3 font-semibold tracking-wide text-white uppercase transition-colors hover:bg-white hover:text-black disabled:opacity-40"
         >
           {busy ? "One moment…" : "Continue"}
         </button>
@@ -128,7 +128,7 @@ export function JoinFlow({ qrToken, eventId }: { qrToken: string; eventId: strin
   if (step === "selfie" || step === "failed") {
     return (
       <div className="panel flex flex-col gap-5 border border-white/15 p-6 text-center">
-        <p className="text-sm text-white/70">
+        <p className="text-sm text-white/85">
           {step === "failed" ? "Let's try that again." : "Now take a selfie 🤳"}
         </p>
         {error && <p className="text-sm text-amber-400">{error}</p>}
@@ -146,7 +146,7 @@ export function JoinFlow({ qrToken, eventId }: { qrToken: string; eventId: strin
         <button
           onClick={() => fileRef.current?.click()}
           disabled={busy}
-          className="border border-white bg-transparent px-4 py-3 font-semibold tracking-wide text-white uppercase transition-colors hover:bg-white hover:text-black disabled:opacity-40"
+          className="rounded-xl border border-white bg-transparent px-4 py-3 font-semibold tracking-wide text-white uppercase transition-colors hover:bg-white hover:text-black disabled:opacity-40"
         >
           {busy ? "Uploading…" : step === "failed" ? "Retake selfie" : "Take selfie"}
         </button>
@@ -157,8 +157,8 @@ export function JoinFlow({ qrToken, eventId }: { qrToken: string; eventId: strin
   return (
     <div className="panel flex flex-col items-center gap-4 border border-white/15 p-8 text-center">
       <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white" />
-      <p className="text-sm text-white/70">Finding your photos…</p>
-      <p className="text-xs text-white/40">This usually takes a few seconds.</p>
+      <p className="text-sm text-white/85">Finding your photos…</p>
+      <p className="text-xs text-white/65">This usually takes a few seconds.</p>
     </div>
   );
 }

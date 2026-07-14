@@ -185,6 +185,8 @@
   },
   "active": "db34279ff076dc25",
   "lastOpenFiles": [
+    "apps/web/src/components/ProfileMenu.tsx",
+    "apps/web/public/above-logo-dark.svg",
     "apps/web/src/components/SiteFooter.tsx",
     "apps/web/public/fond-above.jpg",
     "apps/web/public/above-logo.svg",
@@ -197,7 +199,6 @@
     "apps/web/src/components/settings",
     "apps/web/src/app/settings/page.tsx",
     "apps/web/src/app/settings",
-    "apps/web/src/components/SignOutButton.tsx",
     "docs/setup/deploy-vps.md",
     "docs/design/07-milestones.md",
     "docs/setup/deploy-truenas.md",

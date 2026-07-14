@@ -38,7 +38,7 @@ export function GalleryView({
 
   return (
     <>
-      <p className="mt-2 text-sm text-white/50">
+      <p className="mt-2 text-sm text-white/75">
         {list.length === 0
           ? "No photos yet — they appear here automatically as the photographer shoots."
           : `${list.length} photo${list.length === 1 ? "" : "s"} — updates automatically.`}
@@ -49,7 +49,7 @@ export function GalleryView({
           <button
             key={p.id}
             onClick={() => setOpen(p)}
-            className="aspect-square overflow-hidden bg-white/5"
+            className="aspect-square overflow-hidden rounded-xl bg-white/5"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -62,7 +62,7 @@ export function GalleryView({
         ))}
         {photos === null &&
           Array.from({ length: Math.max(initialCount, 3) }).map((_, i) => (
-            <div key={i} className="aspect-square animate-pulse bg-white/5" />
+            <div key={i} className="aspect-square animate-pulse rounded-xl bg-white/5" />
           ))}
       </div>
 
@@ -80,13 +80,13 @@ export function GalleryView({
           <div className="flex gap-3" onClick={(e) => e.stopPropagation()}>
             <a
               href={`/api/v1/photos/${open.id}/download`}
-              className="border border-white bg-transparent px-6 py-2.5 font-semibold tracking-wide text-white uppercase transition-colors hover:bg-white hover:text-black"
+              className="rounded-xl border border-white bg-transparent px-6 py-2.5 font-semibold tracking-wide text-white uppercase transition-colors hover:bg-white hover:text-black"
             >
               Download
             </a>
             <button
               onClick={() => setOpen(null)}
-              className="border border-white/30 px-6 py-2.5 tracking-wide text-white/80 uppercase"
+              className="rounded-xl border border-white/30 px-6 py-2.5 tracking-wide text-white/80 uppercase"
             >
               Close
             </button>

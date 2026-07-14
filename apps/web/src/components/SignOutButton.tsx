@@ -11,7 +11,7 @@ export function SignOutButton() {
         await authClient.signOut();
         router.push("/signin");
       }}
-      className="text-white/60 hover:text-white"
+      className="text-black/60 hover:text-black"
     >
       Sign out
     </button>

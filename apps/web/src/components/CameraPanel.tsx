@@ -71,10 +71,10 @@ export function CameraPanel({ eventId }: { eventId: string }) {
     <section className="panel border border-white/10 p-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 className="text-sm font-semibold tracking-[0.2em] text-white/50 uppercase">
+          <h2 className="text-sm font-semibold tracking-[0.2em] text-white/75 uppercase">
             Cameras
           </h2>
-          <p className="mt-1 text-sm text-white/40">
+          <p className="mt-1 text-sm text-white/65">
             FTP · port 2121 · passive mode on
           </p>
         </div>
@@ -83,12 +83,12 @@ export function CameraPanel({ eventId }: { eventId: string }) {
             value={label}
             onChange={(e) => setLabel(e.target.value)}
             placeholder="Label (e.g. A7III main)"
-            className="w-44 border border-white/20 bg-transparent px-3 py-2 text-sm focus:border-white focus:outline-none"
+            className="w-44 rounded-xl border border-white/20 bg-transparent px-3 py-2 text-sm focus:border-white focus:outline-none"
           />
           <button
             onClick={create}
             disabled={busy}
-            className="border border-white bg-transparent px-4 py-2 text-sm font-semibold tracking-wide text-white uppercase transition-colors hover:bg-white hover:text-black disabled:opacity-40"
+            className="rounded-xl border border-white bg-transparent px-4 py-2 text-sm font-semibold tracking-wide text-white uppercase transition-colors hover:bg-white hover:text-black disabled:opacity-40"
           >
             {busy ? "…" : "Add camera"}
           </button>
@@ -96,10 +96,10 @@ export function CameraPanel({ eventId }: { eventId: string }) {
       </div>
 
       {fresh && (
-        <div className="mt-4 border border-white/30 bg-white/5 p-4 font-mono text-sm">
+        <div className="mt-4 rounded-xl border border-white/30 bg-white/5 p-4 font-mono text-sm">
           <p>user&nbsp;&nbsp;&nbsp;&nbsp; {fresh.username}</p>
           <p>password&nbsp; {fresh.password}</p>
-          <p className="mt-2 font-sans text-xs text-white/50">
+          <p className="mt-2 font-sans text-xs text-white/75">
             Shown only once — enter it in the camera now, then it lights up below.
           </p>
         </div>
@@ -111,11 +111,11 @@ export function CameraPanel({ eventId }: { eventId: string }) {
             <div className="flex items-center gap-3">
               <span className={`h-2.5 w-2.5 rounded-full ${STATUS_STYLE[c.status].dot}`} />
               <div>
-                <p className={`text-sm font-medium ${c.status === "revoked" ? "text-white/30 line-through" : ""}`}>
+                <p className={`text-sm font-medium ${c.status === "revoked" ? "text-white/55 line-through" : ""}`}>
                   {c.label ?? c.username}
-                  <span className="ml-2 font-mono text-xs text-white/40">{c.username}</span>
+                  <span className="ml-2 font-mono text-xs text-white/65">{c.username}</span>
                 </p>
-                <p className="text-xs text-white/40">
+                <p className="text-xs text-white/65">
                   {STATUS_STYLE[c.status].text}
                   {c.lastUploadAt &&
                     ` · last photo ${new Date(c.lastUploadAt).toLocaleTimeString()}`}
@@ -126,7 +126,7 @@ export function CameraPanel({ eventId }: { eventId: string }) {
             {c.status !== "revoked" && (
               <button
                 onClick={() => revoke(c.id)}
-                className="text-xs text-white/40 uppercase tracking-wide hover:text-red-400"
+                className="text-xs text-white/65 uppercase tracking-wide hover:text-red-400"
               >
                 Revoke
               </button>
@@ -134,7 +134,7 @@ export function CameraPanel({ eventId }: { eventId: string }) {
           </li>
         ))}
         {cameras !== null && cameras.length === 0 && (
-          <li className="py-6 text-center text-sm text-white/30">
+          <li className="py-6 text-center text-sm text-white/55">
             No cameras yet — add one and put the login in your camera's FTP settings.
           </li>
         )}

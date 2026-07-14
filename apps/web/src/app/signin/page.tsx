@@ -36,16 +36,16 @@ export default function SignInPage() {
       </div>
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
         <input name="email" type="email" required placeholder="Email"
-          className="border border-white/20 bg-transparent px-4 py-2.5 focus:border-white focus:outline-none" />
+          className="rounded-xl border border-white/20 bg-transparent px-4 py-2.5 focus:border-white focus:outline-none" />
         <input name="password" type="password" required placeholder="Password"
-          className="border border-white/20 bg-transparent px-4 py-2.5 focus:border-white focus:outline-none" />
+          className="rounded-xl border border-white/20 bg-transparent px-4 py-2.5 focus:border-white focus:outline-none" />
         {error && <p className="text-sm text-red-400">{error}</p>}
         <button disabled={busy}
-          className="border border-white bg-transparent px-4 py-2.5 font-semibold tracking-wide text-white uppercase transition-colors hover:bg-white hover:text-black disabled:opacity-40">
+          className="rounded-xl border border-white bg-transparent px-4 py-2.5 font-semibold tracking-wide text-white uppercase transition-colors hover:bg-white hover:text-black disabled:opacity-40">
           {busy ? "Signing in…" : "Sign in"}
         </button>
       </form>
-      <p className="text-sm text-white/40">
+      <p className="text-sm text-white/65">
         New here?{" "}
         <Link href="/signup" className="text-white underline-offset-4 hover:underline">
           Create an account

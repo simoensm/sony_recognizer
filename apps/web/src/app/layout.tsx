@@ -16,7 +16,7 @@ const openSans = Open_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Above Photos — your photos find you",
+  title: "Above Live Photos — your photos find you",
   description:
     "Instant AI-matched event photo delivery by Above Belgium — scan a QR, take a selfie, get your photos.",
 };

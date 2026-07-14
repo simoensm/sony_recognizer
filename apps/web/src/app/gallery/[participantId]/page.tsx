@@ -20,7 +20,7 @@ export default async function GalleryPage({
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
-      <p className="text-xs font-bold tracking-[0.4em] text-white/40 uppercase">Your photos</p>
+      <p className="text-xs font-bold tracking-[0.4em] text-white/65 uppercase">Your photos</p>
       <h1 className="mt-2 text-2xl font-bold tracking-wide uppercase">{gallery.event.name}</h1>
       <GalleryView participantId={participantId} initialCount={gallery.photos.length} />
     </main>

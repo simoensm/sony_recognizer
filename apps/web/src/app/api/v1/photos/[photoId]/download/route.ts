@@ -1,10 +1,11 @@
 /**
- * GET /api/v1/photos/:id/download — the ORIGINAL file, participants only.
- * Audit row is written before the URL exists; 60s single-use-ish TTL
- * (docs/design/06 §4).
+ * GET /api/v1/photos/:id/download — the ORIGINAL file.
+ * Allowed for: a participant matched IN the photo (download is audit-logged,
+ * docs/design/06 §4), or a photographer managing the event (their own
+ * content — no participant audit row applies).
  */
 import { NextResponse, type NextRequest } from "next/server";
-import { requestDownload } from "@sr/core";
+import { requestDownload, getManagedPhoto } from "@sr/core";
 import { getSession } from "@/lib/session";
 import { signedGetUrl } from "@/lib/s3";
 
@@ -18,14 +19,25 @@ export async function GET(
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { photoId } = await params;
-  const result = await requestDownload(session.user.id, photoId, {
+
+  // Attendee path: authorization via match + audit row.
+  let s3Key: string | null = null;
+  const asParticipant = await requestDownload(session.user.id, photoId, {
     ip: req.headers.get("x-forwarded-for") ?? undefined,
     userAgent: req.headers.get("user-agent") ?? undefined,
   });
-  if (!result) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (asParticipant) {
+    s3Key = asParticipant.s3Key;
+  } else {
+    // Photographer path: event managers download their own material.
+    const photo = await getManagedPhoto(session.user.id, photoId);
+    if (photo) s3Key = photo.s3Key;
+  }
 
-  const ext = result.s3Key.split(".").pop() ?? "jpg";
-  const url = await signedGetUrl(result.s3Key, 60, {
+  if (!s3Key) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  const ext = s3Key.split(".").pop() ?? "jpg";
+  const url = await signedGetUrl(s3Key, 60, {
     downloadName: `photo-${photoId.slice(0, 8)}.${ext}`,
   });
   return NextResponse.redirect(url, { status: 302 });

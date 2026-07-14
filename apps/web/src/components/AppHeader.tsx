@@ -1,32 +1,29 @@
-/** Shared top navigation for signed-in pages — Above Belgium wordmark. */
+/** Shared top navigation — floating white rounded bar, like abovebelgium.be. */
 import Link from "next/link";
-import { SignOutButton } from "./SignOutButton";
+import { ProfileMenu } from "./ProfileMenu";
 
-export function AppHeader({ userName }: { userName: string }) {
+export function AppHeader() {
   return (
-    <header className="border-b border-white/10">
-      <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-        <Link href="/dashboard" className="flex items-center gap-3">
+    <header className="px-4 pt-4">
+      <div className="mx-auto flex max-w-5xl items-center justify-between rounded-full bg-white/80 px-8 py-3 text-black shadow-lg backdrop-blur-md">
+        <Link href="/" className="flex items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/above-logo.svg" alt="Above Belgium" className="h-9 w-auto" />
-          <span className="text-xs font-bold tracking-[0.3em] text-white/40 uppercase">
-            Photos
+          <img src="/above-logo-dark.svg" alt="Above Belgium" className="h-9 w-auto" />
+          <span className="text-xs font-bold tracking-[0.3em] text-black/40 uppercase">
+            Live Photos
           </span>
         </Link>
-        <nav className="flex items-center gap-6 text-sm text-white/60">
+        <nav className="flex items-center gap-6 text-sm text-black/60">
           <a
             href="https://www.abovebelgium.be/en"
-            className="hidden hover:text-white sm:inline"
+            className="hidden hover:text-black sm:inline"
           >
             abovebelgium.be ↗
           </a>
-          <Link href="/dashboard" className="hover:text-white">
+          <Link href="/dashboard" className="hover:text-black">
             Events
           </Link>
-          <Link href="/settings" className="hover:text-white">
-            {userName}
-          </Link>
-          <SignOutButton />
+          <ProfileMenu variant="light" />
         </nav>
       </div>
     </header>

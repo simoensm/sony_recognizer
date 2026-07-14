@@ -37,18 +37,18 @@ export default function SignUpPage() {
       </div>
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
         <input name="name" required placeholder="Your name"
-          className="border border-white/20 bg-transparent px-4 py-2.5 focus:border-white focus:outline-none" />
+          className="rounded-xl border border-white/20 bg-transparent px-4 py-2.5 focus:border-white focus:outline-none" />
         <input name="email" type="email" required placeholder="Email"
-          className="border border-white/20 bg-transparent px-4 py-2.5 focus:border-white focus:outline-none" />
+          className="rounded-xl border border-white/20 bg-transparent px-4 py-2.5 focus:border-white focus:outline-none" />
         <input name="password" type="password" required minLength={8} placeholder="Password (min 8 chars)"
-          className="border border-white/20 bg-transparent px-4 py-2.5 focus:border-white focus:outline-none" />
+          className="rounded-xl border border-white/20 bg-transparent px-4 py-2.5 focus:border-white focus:outline-none" />
         {error && <p className="text-sm text-red-400">{error}</p>}
         <button disabled={busy}
-          className="border border-white bg-transparent px-4 py-2.5 font-semibold tracking-wide text-white uppercase transition-colors hover:bg-white hover:text-black disabled:opacity-40">
+          className="rounded-xl border border-white bg-transparent px-4 py-2.5 font-semibold tracking-wide text-white uppercase transition-colors hover:bg-white hover:text-black disabled:opacity-40">
           {busy ? "Creating…" : "Sign up"}
         </button>
       </form>
-      <p className="text-sm text-white/40">
+      <p className="text-sm text-white/65">
         Already have an account?{" "}
         <Link href="/signin" className="text-white underline-offset-4 hover:underline">
           Sign in
