@@ -1,52 +1,67 @@
 """AI worker entrypoint (docs/design/03 §5).
 
-M0: consumes both queues and logs validated payloads — proves the
-TS-produces / Python-consumes pipeline works before any ML exists.
+Consumes photo.process jobs: fetch image → detect faces → embed → persist
+→ generate variants. selfie.enroll gets a separate consumer so a waiting
+human is never stuck behind background photos; its real matching logic
+lands in M2.
 
-M1 replaces `handle_photo` with the real pipeline:
-    fetch from S3 → SCRFD detect → quality filter → align → ArcFace embed
-    → persist faces (idempotent upsert) → match both directions
-    → write thumb/preview variants → mark photo processed
-
-Design rules already honored here:
-  - selfie.enroll is a separate consumer: a waiting human always beats
-    a background photo (priority, docs/design/03 §5)
-  - jobs are validated before processing: a malformed payload fails loudly
-  - one process = one future ONNX session; scale via replicas, not threads
+Failure model: an exception marks the photo `failed` and re-raises, so
+BullMQ retries with backoff (3 attempts, then the job stays visible as
+failed = our dead-letter queue). Everything inside is idempotent.
 """
 
 import asyncio
+import logging
 import os
 import signal
 
 from bullmq import Worker
 
+from . import db
 from .contracts import (
     QUEUE_PHOTO_PROCESS,
     QUEUE_SELFIE_ENROLL,
     PhotoProcessJob,
     SelfieEnrollJob,
 )
+from .pipeline import process_photo
+
+logging.basicConfig(level=logging.INFO, format="[%(name)s] %(message)s")
+log = logging.getLogger("worker")
 
 REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379")
 
 
 async def handle_photo(job, job_token):
     payload = PhotoProcessJob.model_validate(job.data)
-    print(f"[worker] photo.process received: photo={payload.photoId} (ML lands in M1)")
-    return {"faces": 0, "skeleton": True}
+    try:
+        # The pipeline is CPU-bound sync code; run it off the event loop
+        # so heartbeats to Redis keep flowing during long photos.
+        return await asyncio.to_thread(
+            process_photo, payload.photoId, payload.eventId, payload.s3Key
+        )
+    except Exception:
+        log.exception("photo %s failed", payload.photoId)
+        try:
+            with db.connect() as conn:
+                db.mark_photo(conn, payload.photoId, "failed")
+                conn.commit()
+        except Exception:
+            log.exception("could not mark photo %s as failed", payload.photoId)
+        raise  # let BullMQ schedule the retry
 
 
 async def handle_selfie(job, job_token):
     payload = SelfieEnrollJob.model_validate(job.data)
-    print(f"[worker] selfie.enroll received: participant={payload.participantId}")
+    log.info("selfie.enroll received for participant %s (matching lands in M2)", payload.participantId)
     return {"skeleton": True}
 
 
 async def main() -> None:
-    print(f"[worker] starting — redis={REDIS_URL}")
+    log.info("starting — redis=%s", REDIS_URL)
     photo_worker = Worker(QUEUE_PHOTO_PROCESS, handle_photo, {"connection": REDIS_URL})
     selfie_worker = Worker(QUEUE_SELFIE_ENROLL, handle_selfie, {"connection": REDIS_URL})
+    log.info("consuming %s and %s", QUEUE_PHOTO_PROCESS, QUEUE_SELFIE_ENROLL)
 
     stop = asyncio.Event()
     loop = asyncio.get_running_loop()
@@ -54,7 +69,7 @@ async def main() -> None:
         loop.add_signal_handler(sig, stop.set)
 
     await stop.wait()
-    print("[worker] shutting down…")
+    log.info("shutting down…")
     await photo_worker.close()
     await selfie_worker.close()
 

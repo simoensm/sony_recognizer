@@ -1,0 +1,14 @@
+README.md
+pyproject.toml
+src/sr_worker.egg-info/PKG-INFO
+src/sr_worker.egg-info/SOURCES.txt
+src/sr_worker.egg-info/dependency_links.txt
+src/sr_worker.egg-info/requires.txt
+src/sr_worker.egg-info/top_level.txt
+src/worker/__init__.py
+src/worker/contracts.py
+src/worker/db.py
+src/worker/main.py
+src/worker/pipeline.py
+src/worker/settings.py
+src/worker/storage.py

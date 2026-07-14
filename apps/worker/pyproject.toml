@@ -7,11 +7,16 @@ dependencies = [
     "bullmq>=2.0",      # same Redis job structures as the TypeScript side
     "redis>=5.0",
     "pydantic>=2.0",    # validates job payloads against packages/queue contracts
+    "boto3>=1.34",      # object storage (MinIO/S3)
+    "psycopg[binary]>=3.1",  # Postgres
+    "pillow>=10.0",     # image decode, EXIF rotation, thumbnails
+    "python-dotenv>=1.0",
 ]
 
 [project.optional-dependencies]
-# Heavy ML dependencies — installed in M1 when the pipeline is built.
-# Kept optional so contributors can run the skeleton without a 2 GB download.
+# Heavy ML dependencies — kept optional so contributors can run the
+# skeleton without a 2 GB download. The real pipeline needs them:
+#   pip install -e ".[ml]"
 ml = [
     "insightface>=0.7",
     "onnxruntime>=1.18",         # swap for onnxruntime-gpu on GPU boxes

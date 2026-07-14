@@ -21,6 +21,13 @@ const envSchema = z.object({
 
   BETTER_AUTH_SECRET: z.string().min(16, "generate with: openssl rand -base64 32"),
   BETTER_AUTH_URL: z.string().url(),
+
+  // --- FTP ingest (only the ingest service reads these) ---
+  FTP_PORT: z.coerce.number().int().default(2121),
+  /** LAN IP the camera connects back to for data transfers. */
+  FTP_PASV_HOST: z.string().default("127.0.0.1"),
+  FTP_PASV_MIN: z.coerce.number().int().default(30000),
+  FTP_PASV_MAX: z.coerce.number().int().default(30009),
 });
 
 export type Env = z.infer<typeof envSchema>;
