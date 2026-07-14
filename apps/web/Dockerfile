@@ -25,6 +25,10 @@ RUN DATABASE_URL=postgresql://build:build@localhost:5432/build \
     S3_ENDPOINT=http://localhost:9000 S3_ACCESS_KEY=build S3_SECRET_KEY=build S3_BUCKET=build \
     BETTER_AUTH_SECRET=build-time-only-secret BETTER_AUTH_URL=http://localhost:3000 \
     pnpm --filter @sr/web build
+# Next's standalone tracing misses Prisma's native engine (.so.node) under
+# pnpm — copy it into a path the client searches at runtime.
+RUN find /repo/node_modules/.pnpm -name "libquery_engine-linux-musl*" \
+    -exec cp {} /repo/apps/web/.next/standalone/apps/web/.next/server/ \;
 
 FROM node:22-alpine AS run
 WORKDIR /app
