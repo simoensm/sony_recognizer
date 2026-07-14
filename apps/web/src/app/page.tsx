@@ -2,9 +2,8 @@
 export default function Home() {
   return (
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col items-center justify-center gap-8 px-6 text-center">
-      <p className="text-xs font-bold tracking-[0.4em] text-white/40 uppercase">
-        Above · Photos
-      </p>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/above-logo.svg" alt="Above Belgium" className="h-24 w-auto" />
       <h1 className="text-4xl font-bold tracking-wide uppercase sm:text-5xl">
         Your photos find you
       </h1>

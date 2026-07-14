@@ -31,10 +31,9 @@ export default function SignUpPage() {
   return (
     <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-8 px-6">
       <div>
-        <p className="text-xs font-bold tracking-[0.4em] text-white/40 uppercase">
-          Above · Photos
-        </p>
-        <h1 className="mt-2 text-2xl font-bold tracking-wide uppercase">Create account</h1>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/above-logo.svg" alt="Above Belgium" className="h-14 w-auto" />
+        <h1 className="mt-4 text-2xl font-bold tracking-wide uppercase">Create account</h1>
       </div>
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
         <input name="name" required placeholder="Your name"
