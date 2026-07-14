@@ -4,12 +4,27 @@
  */
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
-import { createFtpCredential } from "@sr/core";
+import { createFtpCredential, listFtpCredentials } from "@sr/core";
 import { getSession } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
 const input = z.object({ label: z.string().trim().max(60).optional() });
+
+/** GET — cameras with liveness status (dashboard polls this). */
+export async function GET(
+  _req: Request,
+  { params }: { params: Promise<{ eventId: string }> },
+) {
+  const session = await getSession();
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { eventId } = await params;
+  const cameras = await listFtpCredentials(session.user.id, eventId);
+  if (!cameras) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  return NextResponse.json({ cameras });
+}
 
 export async function POST(
   req: NextRequest,

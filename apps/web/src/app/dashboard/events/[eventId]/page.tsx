@@ -1,11 +1,12 @@
-/** Single-event live view: counters, camera credentials, incoming photos. */
+/** Single-event live view: cameras, QR, counters, incoming photos. */
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getManagedEvent, ensureEventQr } from "@sr/core";
 import { loadEnv } from "@sr/config";
 import { getSession } from "@/lib/session";
+import { AppHeader } from "@/components/AppHeader";
 import { EventLiveView } from "@/components/EventLiveView";
-import { FtpCredentialPanel } from "@/components/FtpCredentialPanel";
+import { CameraPanel } from "@/components/CameraPanel";
 import { QrPanel } from "@/components/QrPanel";
 
 export const dynamic = "force-dynamic";
@@ -28,18 +29,23 @@ export default async function EventPage({
   const joinUrl = `${base}/e/${qr.token}`;
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-12">
-      <Link href="/dashboard" className="text-sm text-zinc-400 hover:text-zinc-200">
-        ← All events
-      </Link>
-      <h1 className="mt-2 text-2xl font-bold">{event.name}</h1>
-      {event.venue && <p className="text-zinc-400">{event.venue}</p>}
+    <>
+      <AppHeader userName={session.user.name} />
+      <main className="mx-auto max-w-5xl px-6 py-10">
+        <Link href="/dashboard" className="text-xs tracking-[0.2em] text-white/40 uppercase hover:text-white">
+          ← Events
+        </Link>
+        <h1 className="mt-2 text-3xl font-bold tracking-wide uppercase">{event.name}</h1>
+        {event.venue && <p className="mt-1 text-white/50">{event.venue}</p>}
 
-      <div className="mt-8 flex flex-col gap-8">
-        <QrPanel joinUrl={joinUrl} />
-        <FtpCredentialPanel eventId={event.id} />
-        <EventLiveView eventId={event.id} />
-      </div>
-    </main>
+        <div className="mt-10 flex flex-col gap-8">
+          <EventLiveView eventId={event.id} />
+          <div className="grid gap-8 lg:grid-cols-2">
+            <CameraPanel eventId={event.id} />
+            <QrPanel joinUrl={joinUrl} />
+          </div>
+        </div>
+      </main>
+    </>
   );
 }

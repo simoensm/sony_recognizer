@@ -16,7 +16,7 @@ import { prisma, Prisma } from "@sr/db";
 import { QUEUES, photoProcessJob } from "@sr/queue";
 import { photoQueue } from "./queue";
 import { uploadFile } from "./s3";
-import type { CameraSession } from "./auth";
+import { markCameraSeen, type CameraSession } from "./auth";
 
 const ALLOWED_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".heic"]);
 
@@ -71,11 +71,13 @@ export async function processUpload(session: CameraSession, localPath: string) {
         capturedAt,
         exif: exif as Prisma.InputJsonValue,
         status: "ingested",
+        ftpCredentialId: session.credential.id,
         // Auto-publish default (docs/design/01 §2.4); per-event review mode later.
         published: true,
         publishedAt: new Date(),
       },
     });
+    markCameraSeen(session.credential.id, true);
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
       console.log(`[ingest] duplicate (camera retry?) — skipped: ${name}`);

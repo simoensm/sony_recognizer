@@ -13,7 +13,7 @@ import { mkdtemp, mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { FtpSrv, FileSystem } from "ftp-srv";
-import { authenticateCamera, type CameraSession } from "./auth";
+import { authenticateCamera, markCameraSeen, type CameraSession } from "./auth";
 import { processUpload } from "./process";
 
 /**
@@ -60,6 +60,7 @@ export function startFtpServer(opts: FtpOptions) {
       // Private scratch space for this connection's uploads.
       const root = await mkdtemp(join(tmpdir(), "sr-ingest-"));
       console.log(`[ftp] camera connected: ${username} → event ${session.event.name}`);
+      markCameraSeen(session.credential.id);
 
       // Fires when a file upload FINISHES (not while bytes still stream in).
       connection.on("STOR", (error: Error | null, filePath: string) => {

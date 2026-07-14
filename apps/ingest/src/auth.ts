@@ -42,3 +42,15 @@ export async function authenticateCamera(
 
   return { credential, event };
 }
+
+/** Update the liveness timestamp — fire-and-forget, never blocks the camera. */
+export function markCameraSeen(credentialId: string, uploaded = false) {
+  prisma.ftpCredential
+    .update({
+      where: { id: credentialId },
+      data: uploaded
+        ? { lastUploadAt: new Date(), lastLoginAt: new Date() }
+        : { lastLoginAt: new Date() },
+    })
+    .catch(() => {});
+}

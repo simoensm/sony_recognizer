@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Sony Recognizer",
+  title: "Above Photos — your photos find you",
   description:
-    "Instant AI-matched event photo delivery — scan a QR, take a selfie, get your photos.",
+    "Instant AI-matched event photo delivery by Above Belgium — scan a QR, take a selfie, get your photos.",
 };
 
 export default function RootLayout({
@@ -12,7 +12,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-zinc-950 text-zinc-100 antialiased">
+      <body className="min-h-screen bg-black text-white antialiased">
         {children}
       </body>
     </html>

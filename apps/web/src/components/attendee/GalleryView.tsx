@@ -38,7 +38,7 @@ export function GalleryView({
 
   return (
     <>
-      <p className="mt-2 text-sm text-zinc-400">
+      <p className="mt-2 text-sm text-white/50">
         {list.length === 0
           ? "No photos yet — they appear here automatically as the photographer shoots."
           : `${list.length} photo${list.length === 1 ? "" : "s"} — updates automatically.`}
@@ -49,7 +49,7 @@ export function GalleryView({
           <button
             key={p.id}
             onClick={() => setOpen(p)}
-            className="aspect-square overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900"
+            className="aspect-square overflow-hidden bg-white/5"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -62,7 +62,7 @@ export function GalleryView({
         ))}
         {photos === null &&
           Array.from({ length: Math.max(initialCount, 3) }).map((_, i) => (
-            <div key={i} className="aspect-square animate-pulse rounded-xl bg-zinc-900" />
+            <div key={i} className="aspect-square animate-pulse bg-white/5" />
           ))}
       </div>
 
@@ -75,18 +75,18 @@ export function GalleryView({
           <img
             src={`/api/v1/photos/${open.id}/preview`}
             alt=""
-            className="max-h-[80vh] max-w-full rounded-lg"
+            className="max-h-[80vh] max-w-full "
           />
           <div className="flex gap-3" onClick={(e) => e.stopPropagation()}>
             <a
               href={`/api/v1/photos/${open.id}/download`}
-              className="rounded-xl bg-emerald-600 px-5 py-2.5 font-medium hover:bg-emerald-500"
+              className="bg-white px-6 py-2.5 font-semibold tracking-wide text-black uppercase hover:bg-white/80"
             >
               Download
             </a>
             <button
               onClick={() => setOpen(null)}
-              className="rounded-xl border border-zinc-700 px-5 py-2.5 text-zinc-300"
+              className="border border-white/30 px-6 py-2.5 tracking-wide text-white/80 uppercase"
             >
               Close
             </button>

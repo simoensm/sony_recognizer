@@ -2,8 +2,7 @@
 
 /**
  * Live event ticker. Polls /stats every 2.5s — simple and robust for one
- * photographer watching one event. Upgraded to SSE push in M2 alongside
- * the attendee gallery (where push actually matters at scale).
+ * photographer watching one event. Upgraded to SSE push when scale demands.
  */
 import { useEffect, useState } from "react";
 
@@ -42,7 +41,7 @@ export function EventLiveView({ eventId }: { eventId: string }) {
     };
   }, [eventId]);
 
-  if (!stats) return <p className="text-zinc-500">Loading live view…</p>;
+  if (!stats) return <p className="text-white/30">Loading live view…</p>;
 
   const counters = [
     { label: "Photos", value: stats.photos.total },
@@ -54,29 +53,26 @@ export function EventLiveView({ eventId }: { eventId: string }) {
 
   return (
     <section>
-      <div className="flex items-center gap-2">
-        <h2 className="text-lg font-semibold">Live</h2>
+      <div className="flex items-center gap-3">
+        <h2 className="text-sm font-semibold tracking-[0.2em] text-white/50 uppercase">Live</h2>
         <span
-          className={`inline-block h-2 w-2 rounded-full ${stale ? "bg-red-500" : "animate-pulse bg-emerald-500"}`}
+          className={`inline-block h-2 w-2 rounded-full ${stale ? "bg-red-500" : "animate-pulse bg-white"}`}
           title={stale ? "connection lost" : "updating"}
         />
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5">
+      <div className="mt-4 grid grid-cols-2 gap-px border border-white/10 bg-white/10 sm:grid-cols-5">
         {counters.map((c) => (
-          <div key={c.label} className="rounded-xl border border-zinc-800 p-4 text-center">
-            <p className="text-2xl font-bold">{c.value}</p>
-            <p className="text-xs text-zinc-400">{c.label}</p>
+          <div key={c.label} className="bg-black p-5 text-center">
+            <p className="text-3xl font-bold">{c.value}</p>
+            <p className="mt-1 text-xs tracking-[0.15em] text-white/40 uppercase">{c.label}</p>
           </div>
         ))}
       </div>
 
-      <div className="mt-6 grid grid-cols-4 gap-2 sm:grid-cols-6">
+      <div className="mt-6 grid grid-cols-4 gap-1 sm:grid-cols-8">
         {stats.recentPhotos.map((p) => (
-          <div
-            key={p.id}
-            className="relative aspect-square overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900"
-          >
+          <div key={p.id} className="relative aspect-square overflow-hidden bg-white/5">
             {p.status === "processed" ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -86,14 +82,14 @@ export function EventLiveView({ eventId }: { eventId: string }) {
                 loading="lazy"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center text-[10px] uppercase tracking-wide text-zinc-500">
+              <div className="flex h-full w-full items-center justify-center text-[9px] tracking-widest text-white/30 uppercase">
                 {p.status}
               </div>
             )}
           </div>
         ))}
         {stats.recentPhotos.length === 0 && (
-          <p className="col-span-full py-8 text-center text-zinc-500">
+          <p className="col-span-full border border-dashed border-white/15 py-10 text-center text-sm text-white/30">
             Waiting for the first photo — point the camera and shoot.
           </p>
         )}

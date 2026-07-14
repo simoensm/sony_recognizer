@@ -18,9 +18,11 @@ export default async function EventJoinPage({
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-6 px-6 py-12">
       <div className="text-center">
-        <p className="text-sm tracking-widest text-emerald-400 uppercase">Your photos</p>
-        <h1 className="mt-1 text-3xl font-bold">{resolved.eventName}</h1>
-        {resolved.venue && <p className="mt-1 text-zinc-400">{resolved.venue}</p>}
+        <p className="text-xs font-bold tracking-[0.4em] text-white/40 uppercase">
+          Above · Photos
+        </p>
+        <h1 className="mt-2 text-3xl font-bold tracking-wide uppercase">{resolved.eventName}</h1>
+        {resolved.venue && <p className="mt-1 text-white/50">{resolved.venue}</p>}
       </div>
       <JoinFlow qrToken={token} eventId={resolved.eventId} />
     </main>

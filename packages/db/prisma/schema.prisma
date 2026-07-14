@@ -205,7 +205,13 @@ model FtpCredential {
   label        String? // e.g. "Camera body A"
   expiresAt    DateTime  @map("expires_at")
   revokedAt    DateTime? @map("revoked_at")
+  // Liveness: when the camera last logged in / delivered a photo.
+  // Powers the "connected / sending" indicator on the dashboard.
+  lastLoginAt  DateTime? @map("last_login_at")
+  lastUploadAt DateTime? @map("last_upload_at")
   createdAt    DateTime  @default(now()) @map("created_at")
+
+  photos Photo[]
 
   @@map("ftp_credentials")
 }
@@ -260,6 +266,9 @@ model Photo {
   // Nullable: FTP uploads attribute via credential, not a logged-in user.
   uploadedById String?            @map("uploaded_by_id")
   uploadedBy   EventPhotographer? @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+  // Which camera (credential) delivered this photo.
+  ftpCredentialId String?        @map("ftp_credential_id")
+  ftpCredential   FtpCredential? @relation(fields: [ftpCredentialId], references: [id], onDelete: SetNull)
   // sha256 of file content — dedupe key against camera/FTP retries (design 01 §3.4)
   contentHash String      @map("content_hash")
   s3Key       String      @map("s3_key")

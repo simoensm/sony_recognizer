@@ -29,19 +29,31 @@ export default function SignUpPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-6 px-6">
-      <h1 className="text-2xl font-bold">Create your account</h1>
+    <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-8 px-6">
+      <div>
+        <p className="text-xs font-bold tracking-[0.4em] text-white/40 uppercase">
+          Above · Photos
+        </p>
+        <h1 className="mt-2 text-2xl font-bold tracking-wide uppercase">Create account</h1>
+      </div>
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
-        <input name="name" required placeholder="Your name" className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2" />
-        <input name="email" type="email" required placeholder="Email" className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2" />
-        <input name="password" type="password" required minLength={8} placeholder="Password (min 8 chars)" className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2" />
+        <input name="name" required placeholder="Your name"
+          className="border border-white/20 bg-transparent px-4 py-2.5 focus:border-white focus:outline-none" />
+        <input name="email" type="email" required placeholder="Email"
+          className="border border-white/20 bg-transparent px-4 py-2.5 focus:border-white focus:outline-none" />
+        <input name="password" type="password" required minLength={8} placeholder="Password (min 8 chars)"
+          className="border border-white/20 bg-transparent px-4 py-2.5 focus:border-white focus:outline-none" />
         {error && <p className="text-sm text-red-400">{error}</p>}
-        <button disabled={busy} className="rounded-lg bg-emerald-600 px-4 py-2 font-medium hover:bg-emerald-500 disabled:opacity-50">
+        <button disabled={busy}
+          className="bg-white px-4 py-2.5 font-semibold tracking-wide text-black uppercase hover:bg-white/80 disabled:opacity-40">
           {busy ? "Creating…" : "Sign up"}
         </button>
       </form>
-      <p className="text-sm text-zinc-400">
-        Already have an account? <Link href="/signin" className="text-emerald-400">Sign in</Link>
+      <p className="text-sm text-white/40">
+        Already have an account?{" "}
+        <Link href="/signin" className="text-white underline-offset-4 hover:underline">
+          Sign in
+        </Link>
       </p>
     </main>
   );

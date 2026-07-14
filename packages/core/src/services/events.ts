@@ -195,6 +195,58 @@ export async function createFtpCredential(userId: string, eventId: string, label
   return { username, password };
 }
 
+/** Camera list for the event dashboard: liveness + per-camera photo count. */
+export async function listFtpCredentials(userId: string, eventId: string) {
+  const event = await getManagedEvent(userId, eventId);
+  if (!event) return null;
+
+  const credentials = await prisma.ftpCredential.findMany({
+    where: { eventId },
+    orderBy: { createdAt: "desc" },
+    include: { _count: { select: { photos: true } } },
+  });
+
+  const now = Date.now();
+  return credentials.map((c) => {
+    const lastSeen = c.lastUploadAt ?? c.lastLoginAt;
+    const seenMsAgo = lastSeen ? now - lastSeen.getTime() : null;
+    return {
+      id: c.id,
+      username: c.username,
+      label: c.label,
+      createdAt: c.createdAt,
+      expiresAt: c.expiresAt,
+      revoked: c.revokedAt !== null,
+      lastLoginAt: c.lastLoginAt,
+      lastUploadAt: c.lastUploadAt,
+      photoCount: c._count.photos,
+      // "sending" = delivered a photo in the last 3 min;
+      // "connected" = logged in recently but no fresh photo;
+      // "idle" = known but quiet; "never" = configured, never seen.
+      status: c.revokedAt
+        ? ("revoked" as const)
+        : c.lastUploadAt && now - c.lastUploadAt.getTime() < 3 * 60_000
+          ? ("sending" as const)
+          : seenMsAgo !== null && seenMsAgo < 3 * 60_000
+            ? ("connected" as const)
+            : lastSeen
+              ? ("idle" as const)
+              : ("never" as const),
+    };
+  });
+}
+
+export async function revokeFtpCredential(userId: string, credentialId: string) {
+  const credential = await prisma.ftpCredential.findUnique({ where: { id: credentialId } });
+  if (!credential) return null;
+  const event = await getManagedEvent(userId, credential.eventId);
+  if (!event) return null;
+  return prisma.ftpCredential.update({
+    where: { id: credentialId },
+    data: { revokedAt: new Date() },
+  });
+}
+
 /** Thumbnail access check: may this user see this photo's variants? */
 export async function getManagedPhoto(userId: string, photoId: string) {
   const photo = await prisma.photo.findFirst({

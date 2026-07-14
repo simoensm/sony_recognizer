@@ -31,23 +31,26 @@ export function CreateEventForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex gap-3">
+    <form onSubmit={onSubmit} className="flex flex-wrap gap-3">
       <input
         name="name"
         required
         minLength={2}
-        placeholder="New event name (e.g. City Marathon 2026)"
-        className="flex-1 rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2"
+        placeholder="New event name"
+        className="min-w-56 flex-1 border border-white/20 bg-transparent px-4 py-2.5 focus:border-white focus:outline-none"
       />
       <input
         name="venue"
         placeholder="Venue (optional)"
-        className="w-48 rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2"
+        className="w-48 border border-white/20 bg-transparent px-4 py-2.5 focus:border-white focus:outline-none"
       />
-      <button disabled={busy} className="rounded-lg bg-emerald-600 px-5 py-2 font-medium hover:bg-emerald-500 disabled:opacity-50">
+      <button
+        disabled={busy}
+        className="bg-white px-6 py-2.5 text-sm font-semibold tracking-wide text-black uppercase hover:bg-white/80 disabled:opacity-40"
+      >
         {busy ? "Creating…" : "Create"}
       </button>
-      {error && <p className="self-center text-sm text-red-400">{error}</p>}
+      {error && <p className="w-full text-sm text-red-400">{error}</p>}
     </form>
   );
 }
