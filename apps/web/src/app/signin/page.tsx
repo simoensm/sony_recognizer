@@ -28,12 +28,15 @@ export default function SignInPage() {
   }
 
   return (
-    <main className="mx-auto flex flex-1 min-h-0 w-full max-w-sm flex-col justify-center gap-8 px-6">
-      <div>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/above-logo.svg" alt="Above Belgium" className="h-14 w-auto" />
-        <h1 className="mt-4 text-2xl font-bold tracking-wide uppercase">Sign in</h1>
+    <>
+      <div className="w-full px-6 pt-6">
+        <a href="/">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/above-logo.svg" alt="Above Belgium" className="h-12 w-auto" />
+        </a>
       </div>
+      <main className="mx-auto flex flex-1 min-h-0 w-full max-w-sm flex-col justify-center gap-8 px-6">
+        <h1 className="text-2xl font-bold tracking-wide uppercase">Sign in</h1>
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
         <input name="email" type="email" required placeholder="Email"
           className="rounded-xl border border-white/20 bg-transparent px-4 py-2.5 focus:border-white focus:outline-none" />
@@ -45,12 +48,13 @@ export default function SignInPage() {
           {busy ? "Signing in…" : "Sign in"}
         </button>
       </form>
-      <p className="text-sm text-white/65">
-        New here?{" "}
-        <Link href="/signup" className="text-white underline-offset-4 hover:underline">
-          Create an account
-        </Link>
-      </p>
-    </main>
+        <p className="text-sm text-white/65">
+          New here?{" "}
+          <Link href="/signup" className="text-white underline-offset-4 hover:underline">
+            Create an account
+          </Link>
+        </p>
+      </main>
+    </>
   );
 }

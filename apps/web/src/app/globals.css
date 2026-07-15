@@ -20,11 +20,11 @@ body {
   background-repeat: no-repeat;
 }
 
-/* Solid-enough black backing so text always reads over the starry sky,
-   with rounded corners echoing the site's style. */
+/* Frosted charcoal — clearly lighter than the night-sky background so
+   panels lift off it, while keeping white text at full contrast. */
 @utility panel {
-  background-color: rgb(0 0 0 / 0.78);
-  backdrop-filter: blur(6px);
+  background-color: rgb(38 38 44 / 0.72);
+  backdrop-filter: blur(10px);
   border-radius: 1.5rem;
 }
 
