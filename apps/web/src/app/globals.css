@@ -43,3 +43,22 @@ body {
 .panel-light ::placeholder {
   color: rgb(0 0 0 / 0.45);
 }
+
+/* Consistent, smooth hover/focus feel everywhere — links, buttons, inputs
+   all ease their color/border/opacity changes instead of snapping.
+   Respects users who turned animations off in their OS. */
+@media (prefers-reduced-motion: no-preference) {
+  a,
+  button {
+    transition:
+      color 0.2s ease,
+      background-color 0.2s ease,
+      border-color 0.2s ease,
+      opacity 0.2s ease,
+      transform 0.2s ease;
+  }
+  input,
+  textarea {
+    transition: border-color 0.2s ease;
+  }
+}

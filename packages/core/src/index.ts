@@ -22,6 +22,7 @@ export {
   createFtpCredential,
   listFtpCredentials,
   revokeFtpCredential,
+  getEventLog,
   getManagedEvent,
   getManagedPhoto,
 } from "./services/events";

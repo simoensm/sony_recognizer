@@ -8,6 +8,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { EventLiveView } from "@/components/EventLiveView";
 import { CameraPanel } from "@/components/CameraPanel";
 import { QrPanel } from "@/components/QrPanel";
+import { EventLogPanel } from "@/components/EventLogPanel";
 
 export const dynamic = "force-dynamic";
 
@@ -44,6 +45,7 @@ export default async function EventPage({
             <CameraPanel eventId={event.id} />
             <QrPanel joinUrl={joinUrl} />
           </div>
+          <EventLogPanel eventId={event.id} />
         </div>
       </main>
     </>

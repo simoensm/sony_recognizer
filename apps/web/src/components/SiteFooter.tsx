@@ -8,7 +8,7 @@ export function SiteFooter() {
           <img
             src="/above-logo.svg"
             alt="Above Belgium"
-            className="h-8 w-auto opacity-80 hover:opacity-100"
+            className="h-8 w-auto opacity-80 transition-opacity hover:opacity-100"
           />
         </a>
         <p className="text-xs text-white/55">© Above Belgium</p>

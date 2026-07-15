@@ -50,7 +50,7 @@ export default async function DashboardPage() {
             <Link
               key={e.id}
               href={`/dashboard/events/${e.id}`}
-              className="panel group flex flex-col gap-4 border border-white/10 p-6 transition-all hover:border-white/60"
+              className="panel group flex flex-col gap-4 border border-white/10 p-6 transition-colors hover:border-white/60"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">

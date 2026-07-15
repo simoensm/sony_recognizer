@@ -9,7 +9,8 @@ import { useEffect, useState } from "react";
 type Stats = {
   event: { id: string; name: string; status: string };
   photos: { total: number; ingested: number; processing: number; processed: number; failed: number };
-  faces: number;
+  participants: number;
+  recognized: number;
   recentPhotos: { id: string; status: string; createdAt: string }[];
 };
 
@@ -49,7 +50,8 @@ export function EventLiveView({ eventId }: { eventId: string }) {
     { label: "Processed", value: stats.photos.processed },
     { label: "In queue", value: stats.photos.ingested + stats.photos.processing },
     { label: "Failed", value: stats.photos.failed },
-    { label: "Faces found", value: stats.faces },
+    { label: "Participants", value: stats.participants },
+    { label: "Recognized", value: stats.recognized },
   ];
 
   return (
@@ -62,7 +64,7 @@ export function EventLiveView({ eventId }: { eventId: string }) {
         />
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5">
+      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {counters.map((c) => (
           <div key={c.label} className="panel border border-white/10 p-5 text-center">
             <p className="text-3xl font-bold">{c.value}</p>
@@ -83,7 +85,7 @@ export function EventLiveView({ eventId }: { eventId: string }) {
               <img
                 src={`/api/v1/photos/${p.id}/thumb`}
                 alt=""
-                className="h-full w-full object-cover transition-transform hover:scale-105"
+                className="h-full w-full object-cover transition-transform duration-300 ease-out hover:scale-105"
                 loading="lazy"
               />
             ) : (

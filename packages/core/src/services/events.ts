@@ -138,13 +138,18 @@ export async function getEventStats(userId: string, eventId: string) {
   const event = await getManagedEvent(userId, eventId);
   if (!event) return null;
 
-  const [byStatus, faceCount, recentPhotos] = await Promise.all([
+  const [byStatus, participantCount, recognized, recentPhotos] = await Promise.all([
     prisma.photo.groupBy({
       by: ["status"],
       where: { eventId, deletedAt: null },
       _count: true,
     }),
-    prisma.face.count({ where: { eventId } }),
+    prisma.eventParticipant.count({ where: { eventId, status: "active" } }),
+    // Distinct PEOPLE recognized in photos (not raw face detections).
+    prisma.match.groupBy({
+      by: ["participantId"],
+      where: { eventId, status: { in: ["auto", "confirmed"] } },
+    }),
     prisma.photo.findMany({
       where: { eventId, deletedAt: null },
       orderBy: { createdAt: "desc" },
@@ -165,7 +170,8 @@ export async function getEventStats(userId: string, eventId: string) {
       processed: counts.processed ?? 0,
       failed: counts.failed ?? 0,
     },
-    faces: faceCount,
+    participants: participantCount,
+    recognized: recognized.length,
     recentPhotos,
   };
 }
@@ -245,6 +251,83 @@ export async function revokeFtpCredential(userId: string, credentialId: string) 
     where: { id: credentialId },
     data: { revokedAt: new Date() },
   });
+}
+
+export type EventLogEntry = {
+  at: Date;
+  kind: "photo" | "photo_failed" | "participant" | "download" | "camera";
+  message: string;
+};
+
+/** Activity feed for the event page: everything that happened, newest first. */
+export async function getEventLog(userId: string, eventId: string, limit = 50) {
+  const event = await getManagedEvent(userId, eventId);
+  if (!event) return null;
+
+  const [photos, participants, downloads, credentials] = await Promise.all([
+    prisma.photo.findMany({
+      where: { eventId, deletedAt: null },
+      orderBy: { createdAt: "desc" },
+      take: limit,
+      select: {
+        createdAt: true,
+        status: true,
+        ftpCredential: { select: { label: true, username: true } },
+        _count: { select: { faces: true } },
+      },
+    }),
+    prisma.eventParticipant.findMany({
+      where: { eventId },
+      orderBy: { createdAt: "desc" },
+      take: limit,
+      select: { createdAt: true, enrollmentStatus: true },
+    }),
+    prisma.download.findMany({
+      where: { photo: { eventId } },
+      orderBy: { createdAt: "desc" },
+      take: limit,
+      select: { createdAt: true, variant: true },
+    }),
+    prisma.ftpCredential.findMany({
+      where: { eventId },
+      select: { createdAt: true, label: true, username: true, revokedAt: true },
+    }),
+  ]);
+
+  const entries: EventLogEntry[] = [
+    ...photos.map((p) => ({
+      at: p.createdAt,
+      kind: (p.status === "failed" ? "photo_failed" : "photo") as EventLogEntry["kind"],
+      message:
+        p.status === "failed"
+          ? `Photo processing failed (from ${p.ftpCredential?.label ?? p.ftpCredential?.username ?? "camera"})`
+          : `Photo received from ${p.ftpCredential?.label ?? p.ftpCredential?.username ?? "upload"} · ${p._count.faces} face${p._count.faces === 1 ? "" : "s"}`,
+    })),
+    ...participants.map((p) => ({
+      at: p.createdAt,
+      kind: "participant" as const,
+      message:
+        p.enrollmentStatus === "ready"
+          ? "Attendee joined and enrolled"
+          : "Attendee joined",
+    })),
+    ...downloads.map((d) => ({
+      at: d.createdAt,
+      kind: "download" as const,
+      message: `Attendee downloaded a photo (${d.variant})`,
+    })),
+    ...credentials.flatMap((c) => {
+      const label = c.label ?? c.username;
+      const out: EventLogEntry[] = [
+        { at: c.createdAt, kind: "camera", message: `Camera login created: ${label}` },
+      ];
+      if (c.revokedAt)
+        out.push({ at: c.revokedAt, kind: "camera", message: `Camera login revoked: ${label}` });
+      return out;
+    }),
+  ];
+
+  return entries.sort((a, b) => b.at.getTime() - a.at.getTime()).slice(0, limit);
 }
 
 /** Thumbnail access check: may this user see this photo's variants? */
