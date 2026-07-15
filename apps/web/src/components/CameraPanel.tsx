@@ -19,8 +19,8 @@ type Camera = {
 type FreshCredential = { username: string; password: string };
 
 const STATUS_STYLE: Record<Camera["status"], { dot: string; text: string }> = {
-  sending: { dot: "bg-white animate-pulse", text: "Sending" },
-  connected: { dot: "bg-white/80", text: "Connected" },
+  sending: { dot: "bg-green-400 animate-pulse", text: "Sending" },
+  connected: { dot: "bg-green-500", text: "Connected" },
   idle: { dot: "bg-white/30", text: "Idle" },
   never: { dot: "bg-white/10", text: "Never connected" },
   revoked: { dot: "bg-red-500/60", text: "Revoked" },
