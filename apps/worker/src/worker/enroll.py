@@ -50,9 +50,18 @@ def enroll_selfie(participant_id: str, event_id: str, s3_key: str) -> dict:
         embedding = [float(v) for v in face.normed_embedding]
         identity_id = str(uuid.uuid4())
 
-        # Replace any previous enrollment (retakes): old identities off.
+        # Replace any previous enrollment (retakes): old identities off, and
+        # their unconfirmed matches removed — a bad first selfie must not
+        # leave wrong photos in the gallery. Confirmed matches are kept:
+        # the human already vouched for those.
         conn.execute(
             "UPDATE face_identities SET active = false WHERE participant_id = %s",
+            (participant_id,),
+        )
+        conn.execute(
+            """DELETE FROM matches
+               WHERE participant_id = %s
+                 AND status IN ('auto'::"MatchStatus", 'pending_confirmation'::"MatchStatus")""",
             (participant_id,),
         )
         conn.execute(

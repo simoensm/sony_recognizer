@@ -4,7 +4,8 @@
  * The living gallery: polls every 5s because the photographer is still
  * shooting — new matches appear while the attendee watches.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { FollowLinks } from "./FollowLinks";
 
 type GalleryPhoto = { id: string; capturedAt: string; score: number };
 
@@ -17,6 +18,45 @@ export function GalleryView({
 }) {
   const [photos, setPhotos] = useState<GalleryPhoto[] | null>(null);
   const [open, setOpen] = useState<GalleryPhoto | null>(null);
+  const [retaking, setRetaking] = useState(false);
+  const [retakeError, setRetakeError] = useState<string | null>(null);
+  const retakeRef = useRef<HTMLInputElement>(null);
+
+  async function retake(file: File) {
+    setRetaking(true);
+    setRetakeError(null);
+    const form = new FormData();
+    form.append("selfie", file);
+    const res = await fetch(`/api/v1/participants/${participantId}/selfie`, {
+      method: "POST",
+      body: form,
+    });
+    if (!res.ok) {
+      setRetakeError("Upload failed — please try again.");
+      setRetaking(false);
+      return;
+    }
+    // Wait for the worker to re-match, then refresh the grid.
+    const timer = setInterval(async () => {
+      const r = await fetch(`/api/v1/participants/${participantId}/enrollment`, {
+        cache: "no-store",
+      }).catch(() => null);
+      if (!r?.ok) return;
+      const e = await r.json();
+      if (e.status === "ready") {
+        clearInterval(timer);
+        setRetaking(false);
+        const g = await fetch(`/api/v1/participants/${participantId}/gallery`, {
+          cache: "no-store",
+        }).catch(() => null);
+        if (g?.ok) setPhotos((await g.json()).photos);
+      } else if (e.status === "failed") {
+        clearInterval(timer);
+        setRetaking(false);
+        setRetakeError("That selfie didn't work (one clear face needed) — try again.");
+      }
+    }, 1500);
+  }
 
   useEffect(() => {
     let alive = true;
@@ -38,11 +78,35 @@ export function GalleryView({
 
   return (
     <>
-      <p className="mt-2 text-sm text-white/75">
-        {list.length === 0
-          ? "No photos yet — they appear here automatically as the photographer shoots."
-          : `${list.length} photo${list.length === 1 ? "" : "s"} — updates automatically.`}
-      </p>
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-white/75">
+          {retaking
+            ? "Matching your new selfie…"
+            : list.length === 0
+              ? "No photos yet — they appear here automatically as the photographer shoots."
+              : `${list.length} photo${list.length === 1 ? "" : "s"} — updates automatically.`}
+        </p>
+        <input
+          ref={retakeRef}
+          type="file"
+          accept="image/*"
+          capture="user"
+          hidden
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) retake(f);
+            e.target.value = "";
+          }}
+        />
+        <button
+          onClick={() => retakeRef.current?.click()}
+          disabled={retaking}
+          className="rounded-xl border border-white/30 px-4 py-2 text-xs font-semibold tracking-wide text-white/85 uppercase transition-colors hover:border-white hover:text-white disabled:opacity-40"
+        >
+          {retaking ? "Matching…" : "Retake selfie"}
+        </button>
+      </div>
+      {retakeError && <p className="mt-2 text-sm text-amber-400">{retakeError}</p>}
 
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
         {list.map((p) => (
@@ -64,6 +128,10 @@ export function GalleryView({
           Array.from({ length: Math.max(initialCount, 3) }).map((_, i) => (
             <div key={i} className="aspect-square animate-pulse rounded-xl bg-white/5" />
           ))}
+      </div>
+
+      <div className="mt-10">
+        <FollowLinks />
       </div>
 
       {open && (

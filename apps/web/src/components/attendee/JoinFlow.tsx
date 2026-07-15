@@ -8,6 +8,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
+import { FollowLinks } from "./FollowLinks";
 
 type Step = "consent" | "selfie" | "processing" | "failed";
 
@@ -150,6 +151,7 @@ export function JoinFlow({ qrToken, eventId }: { qrToken: string; eventId: strin
         >
           {busy ? "Uploading…" : step === "failed" ? "Retake selfie" : "Take selfie"}
         </button>
+        <FollowLinks />
       </div>
     );
   }
@@ -159,6 +161,9 @@ export function JoinFlow({ qrToken, eventId }: { qrToken: string; eventId: strin
       <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white" />
       <p className="text-sm text-white/85">Finding your photos…</p>
       <p className="text-xs text-white/65">This usually takes a few seconds.</p>
+      <div className="w-full">
+        <FollowLinks />
+      </div>
     </div>
   );
 }
