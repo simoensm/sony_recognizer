@@ -38,8 +38,26 @@ export function EventControls({
     if (res.ok) router.push("/dashboard");
   }
 
+  async function reprocess() {
+    if (!confirm("Re-run the AI over all photos of this event? (regenerates previews, watermarks and face data — takes a while)")) return;
+    setBusy(true);
+    const res = await fetch(`/api/v1/events/${eventId}/reprocess`, { method: "POST" });
+    setBusy(false);
+    if (res.ok) {
+      const { queued } = await res.json();
+      alert(`${queued} photo(s) queued for reprocessing.`);
+    }
+  }
+
   return (
     <div className="flex items-center gap-3">
+      <button
+        onClick={reprocess}
+        disabled={busy}
+        className="rounded-xl border border-white/30 px-4 py-2 text-xs font-semibold tracking-wide text-white/85 uppercase transition-colors hover:border-white hover:text-white disabled:opacity-40"
+      >
+        Reprocess
+      </button>
       {status === "live" ? (
         <button
           onClick={() => setStatus("closed")}

@@ -269,6 +269,16 @@ export async function revokeFtpCredential(userId: string, credentialId: string) 
   });
 }
 
+/** Photos of an event that can be re-run through the AI pipeline. */
+export async function listReprocessablePhotos(userId: string, eventId: string) {
+  const event = await getManagedEvent(userId, eventId);
+  if (!event) return null;
+  return prisma.photo.findMany({
+    where: { eventId, deletedAt: null, status: { in: ["processed", "failed"] } },
+    select: { id: true, eventId: true, s3Key: true, contentHash: true },
+  });
+}
+
 /** End (close) or reopen an event. Closed = no new uploads, galleries stay. */
 export async function setEventStatus(userId: string, eventId: string, status: "live" | "closed") {
   const event = await getManagedEvent(userId, eventId);

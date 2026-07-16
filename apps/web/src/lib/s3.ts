@@ -1,6 +1,6 @@
 /** Shared S3 client + helpers for the web app. Bucket is private:
  *  reads are 5-minute signed URLs, writes are server-side only. */
-import { S3Client, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, GetObjectCommand, PutObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { loadEnv } from "@sr/config";
 
@@ -30,6 +30,15 @@ export async function signedGetUrl(
     }),
     { expiresIn },
   );
+}
+
+export async function objectExists(key: string): Promise<boolean> {
+  try {
+    await s3.send(new HeadObjectCommand({ Bucket: env.S3_BUCKET, Key: key }));
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export async function putObject(key: string, body: Buffer, contentType: string) {

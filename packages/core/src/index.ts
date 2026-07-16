@@ -25,6 +25,7 @@ export {
   getEventLog,
   setEventStatus,
   deleteEvent,
+  listReprocessablePhotos,
   getManagedEvent,
   getManagedPhoto,
 } from "./services/events";

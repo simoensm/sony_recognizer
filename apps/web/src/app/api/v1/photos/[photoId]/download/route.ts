@@ -7,7 +7,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { requestDownload, getManagedPhoto } from "@sr/core";
 import { getSession } from "@/lib/session";
-import { signedGetUrl } from "@/lib/s3";
+import { signedGetUrl, objectExists } from "@/lib/s3";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +34,12 @@ export async function GET(
     const prefix = asParticipant.s3Key.split("/originals/")[0];
     s3Key = `${prefix}/variants/${photoId}/watermarked.jpg`;
     downloadName = `abovebelgium-${photoId.slice(0, 8)}.jpg`;
+    // Photos processed before the watermark feature lack this file —
+    // fall back to the preview so the download never breaks.
+    if (!(await objectExists(s3Key))) {
+      s3Key = `${prefix}/variants/${photoId}/preview.webp`;
+      downloadName = `abovebelgium-${photoId.slice(0, 8)}.webp`;
+    }
   } else {
     // Photographer path: event managers get the untouched original.
     const photo = await getManagedPhoto(session.user.id, photoId);
