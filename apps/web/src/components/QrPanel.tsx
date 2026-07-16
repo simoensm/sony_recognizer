@@ -1,8 +1,8 @@
 /** Server component: the event QR as a print-ready white card with black
- *  code (maximum scan contrast on posters) + the join link. */
+ *  code (maximum scan contrast on posters) + join link + HQ download. */
 import QRCode from "qrcode";
 
-export async function QrPanel({ joinUrl }: { joinUrl: string }) {
+export async function QrPanel({ joinUrl, eventId }: { joinUrl: string; eventId: string }) {
   const svg = await QRCode.toString(joinUrl, {
     type: "svg",
     margin: 0,
@@ -27,6 +27,12 @@ export async function QrPanel({ joinUrl }: { joinUrl: string }) {
         <div className="min-w-0">
           <p className="text-xs tracking-[0.2em] text-white/65 uppercase">Join link</p>
           <p className="mt-1 break-all font-mono text-sm text-white/80">{joinUrl}</p>
+          <a
+            href={`/api/v1/events/${eventId}/qr/download`}
+            className="mt-4 inline-block rounded-xl border border-white bg-transparent px-4 py-2 text-xs font-semibold tracking-wide text-white uppercase transition-colors hover:bg-white hover:text-black"
+          >
+            Download HQ for print
+          </a>
         </div>
       </div>
     </section>

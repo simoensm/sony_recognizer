@@ -34,3 +34,11 @@ MIN_FACE_SIZE = int(os.environ.get("MIN_FACE_SIZE", "24"))
 
 THUMB_MAX_PX = 400
 PREVIEW_MAX_PX = 1600
+
+# --- Watermark (applied to previews only; originals stay clean) ---
+WATERMARK_ENABLED = os.environ.get("WATERMARK_ENABLED", "true").lower() == "true"
+WATERMARK_PATH = os.environ.get(
+    "WATERMARK_PATH", str(_repo_root / "apps" / "worker" / "assets" / "watermark.png")
+)
+WATERMARK_SCALE = float(os.environ.get("WATERMARK_SCALE", "0.18"))  # of image width
+WATERMARK_OPACITY = float(os.environ.get("WATERMARK_OPACITY", "0.45"))

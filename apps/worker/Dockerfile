@@ -12,7 +12,9 @@ RUN apt-get update \
 WORKDIR /app
 COPY pyproject.toml ./
 COPY src ./src
+COPY assets ./assets
 RUN pip install --no-cache-dir ".[ml]"
+ENV WATERMARK_PATH=/app/assets/watermark.png
 
 # Face models (~300 MB) download here on first start; mount a volume
 # so restarts don't re-download.

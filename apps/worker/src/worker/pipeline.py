@@ -59,12 +59,46 @@ def load_image(data: bytes) -> Image.Image:
     return img.convert("RGB")
 
 
+_watermark = None
+
+
+def get_watermark() -> Image.Image | None:
+    """Photographer's logo (white on transparent), loaded once per process."""
+    global _watermark
+    if _watermark is None and settings.WATERMARK_ENABLED:
+        try:
+            _watermark = Image.open(settings.WATERMARK_PATH).convert("RGBA")
+        except OSError:
+            log.warning("watermark file not found at %s — previews unmarked", settings.WATERMARK_PATH)
+            _watermark = False  # sentinel: don't retry every photo
+    return _watermark or None
+
+
+def apply_watermark(img: Image.Image) -> Image.Image:
+    """Logo bottom-right, semi-transparent, sized relative to the image."""
+    wm = get_watermark()
+    if wm is None:
+        return img
+    wm_w = max(1, int(img.width * settings.WATERMARK_SCALE))
+    wm_h = max(1, int(wm.height * wm_w / wm.width))
+    mark = wm.resize((wm_w, wm_h), Image.LANCZOS)
+    alpha = mark.getchannel("A").point(lambda a: int(a * settings.WATERMARK_OPACITY))
+    mark.putalpha(alpha)
+    margin = int(img.width * 0.03)
+    base = img.convert("RGBA")
+    base.alpha_composite(mark, (img.width - wm_w - margin, img.height - wm_h - margin))
+    return base.convert("RGB")
+
+
 def make_variants(img: Image.Image, photo_id: str, s3_prefix: str) -> None:
-    """Small webp copies: `thumb` for grids, `preview` for the lightbox.
-    Originals are only served on explicit download (docs/design/06 §4)."""
+    """Small webp copies: `thumb` for grids, `preview` for the lightbox
+    (watermarked — the free-viewing tier). Originals are only served on
+    explicit download and stay clean (docs/design/01 §3.2, 06 §4)."""
     for name, max_px in (("thumb", settings.THUMB_MAX_PX), ("preview", settings.PREVIEW_MAX_PX)):
         copy = img.copy()
         copy.thumbnail((max_px, max_px))
+        if name == "preview":
+            copy = apply_watermark(copy)
         buf = io.BytesIO()
         copy.save(buf, format="WEBP", quality=80)
         storage.put_bytes(f"{s3_prefix}/variants/{photo_id}/{name}.webp", buf.getvalue(), "image/webp")

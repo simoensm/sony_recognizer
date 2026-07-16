@@ -43,7 +43,7 @@ export default async function EventPage({
           <EventLiveView eventId={event.id} />
           <div className="grid gap-8 lg:grid-cols-2">
             <CameraPanel eventId={event.id} />
-            <QrPanel joinUrl={joinUrl} />
+            <QrPanel joinUrl={joinUrl} eventId={event.id} />
           </div>
           <EventLogPanel eventId={event.id} />
         </div>
