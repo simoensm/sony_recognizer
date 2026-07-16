@@ -11,8 +11,15 @@ type Stats = {
   photos: { total: number; ingested: number; processing: number; processed: number; failed: number };
   participants: number;
   recognized: number;
+  dataBytes: number;
   recentPhotos: { id: string; status: string; createdAt: string }[];
 };
+
+export function formatBytes(bytes: number): string {
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(0)} MB`;
+  return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`;
+}
 
 export function EventLiveView({ eventId }: { eventId: string }) {
   const [stats, setStats] = useState<Stats | null>(null);
@@ -45,13 +52,14 @@ export function EventLiveView({ eventId }: { eventId: string }) {
 
   if (!stats) return <p className="text-white/55">Loading live view…</p>;
 
-  const counters = [
+  const counters: { label: string; value: number | string }[] = [
     { label: "Photos", value: stats.photos.total },
     { label: "Processed", value: stats.photos.processed },
     { label: "In queue", value: stats.photos.ingested + stats.photos.processing },
     { label: "Failed", value: stats.photos.failed },
     { label: "Participants", value: stats.participants },
     { label: "Recognized", value: stats.recognized },
+    { label: "Data used", value: formatBytes(stats.dataBytes) },
   ];
 
   return (
@@ -64,10 +72,10 @@ export function EventLiveView({ eventId }: { eventId: string }) {
         />
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-7">
         {counters.map((c) => (
           <div key={c.label} className="panel border border-white/10 p-5 text-center">
-            <p className="text-3xl font-bold">{c.value}</p>
+            <p className="text-2xl font-bold sm:text-3xl">{c.value}</p>
             <p className="mt-1 text-xs tracking-[0.15em] text-white/65 uppercase">{c.label}</p>
           </div>
         ))}

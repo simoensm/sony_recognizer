@@ -8,7 +8,7 @@
  */
 import { createHash } from "node:crypto";
 import { createReadStream } from "node:fs";
-import { unlink } from "node:fs/promises";
+import { stat, unlink } from "node:fs/promises";
 import { extname, basename } from "node:path";
 import { v7 as uuidv7 } from "uuid";
 import exifr from "exifr";
@@ -37,6 +37,7 @@ export async function processUpload(session: CameraSession, localPath: string) {
   }
 
   const contentHash = await sha256File(localPath);
+  const sizeBytes = (await stat(localPath)).size;
   const { event } = session;
 
   // Camera EXIF: capture time is what galleries sort by. Never fatal.
@@ -68,6 +69,7 @@ export async function processUpload(session: CameraSession, localPath: string) {
         eventId: event.id,
         contentHash,
         s3Key,
+        sizeBytes,
         capturedAt,
         exif: exif as Prisma.InputJsonValue,
         status: "ingested",

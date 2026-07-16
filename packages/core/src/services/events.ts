@@ -138,11 +138,15 @@ export async function getEventStats(userId: string, eventId: string) {
   const event = await getManagedEvent(userId, eventId);
   if (!event) return null;
 
-  const [byStatus, participantCount, recognized, recentPhotos] = await Promise.all([
+  const [byStatus, dataUsage, participantCount, recognized, recentPhotos] = await Promise.all([
     prisma.photo.groupBy({
       by: ["status"],
       where: { eventId, deletedAt: null },
       _count: true,
+    }),
+    prisma.photo.aggregate({
+      where: { eventId, deletedAt: null },
+      _sum: { sizeBytes: true },
     }),
     prisma.eventParticipant.count({ where: { eventId, status: "active" } }),
     // Distinct PEOPLE recognized in photos (not raw face detections).
@@ -172,6 +176,7 @@ export async function getEventStats(userId: string, eventId: string) {
     },
     participants: participantCount,
     recognized: recognized.length,
+    dataBytes: dataUsage._sum.sizeBytes ?? 0,
     recentPhotos,
   };
 }
@@ -206,11 +211,21 @@ export async function listFtpCredentials(userId: string, eventId: string) {
   const event = await getManagedEvent(userId, eventId);
   if (!event) return null;
 
-  const credentials = await prisma.ftpCredential.findMany({
-    where: { eventId },
-    orderBy: { createdAt: "desc" },
-    include: { _count: { select: { photos: true } } },
-  });
+  const [credentials, bytesPerCamera] = await Promise.all([
+    prisma.ftpCredential.findMany({
+      where: { eventId },
+      orderBy: { createdAt: "desc" },
+      include: { _count: { select: { photos: true } } },
+    }),
+    prisma.photo.groupBy({
+      by: ["ftpCredentialId"],
+      where: { eventId, deletedAt: null },
+      _sum: { sizeBytes: true },
+    }),
+  ]);
+  const bytesByCredential = new Map(
+    bytesPerCamera.map((b) => [b.ftpCredentialId, b._sum.sizeBytes ?? 0]),
+  );
 
   const now = Date.now();
   return credentials.map((c) => {
@@ -226,6 +241,7 @@ export async function listFtpCredentials(userId: string, eventId: string) {
       lastLoginAt: c.lastLoginAt,
       lastUploadAt: c.lastUploadAt,
       photoCount: c._count.photos,
+      dataBytes: bytesByCredential.get(c.id) ?? 0,
       // "sending" = delivered a photo in the last 3 min;
       // "connected" = logged in recently but no fresh photo;
       // "idle" = known but quiet; "never" = configured, never seen.

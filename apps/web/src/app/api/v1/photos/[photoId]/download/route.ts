@@ -21,24 +21,30 @@ export async function GET(
   const { photoId } = await params;
 
   // Attendee path: authorization via match + audit row.
+  // Attendees receive the full-res WATERMARKED file; the clean original
+  // is reserved for the photographer.
   let s3Key: string | null = null;
+  let downloadName = `photo-${photoId.slice(0, 8)}.jpg`;
+
   const asParticipant = await requestDownload(session.user.id, photoId, {
     ip: req.headers.get("x-forwarded-for") ?? undefined,
     userAgent: req.headers.get("user-agent") ?? undefined,
   });
   if (asParticipant) {
-    s3Key = asParticipant.s3Key;
+    const prefix = asParticipant.s3Key.split("/originals/")[0];
+    s3Key = `${prefix}/variants/${photoId}/watermarked.jpg`;
+    downloadName = `abovebelgium-${photoId.slice(0, 8)}.jpg`;
   } else {
-    // Photographer path: event managers download their own material.
+    // Photographer path: event managers get the untouched original.
     const photo = await getManagedPhoto(session.user.id, photoId);
-    if (photo) s3Key = photo.s3Key;
+    if (photo) {
+      s3Key = photo.s3Key;
+      downloadName = `photo-${photoId.slice(0, 8)}.${photo.s3Key.split(".").pop() ?? "jpg"}`;
+    }
   }
 
   if (!s3Key) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const ext = s3Key.split(".").pop() ?? "jpg";
-  const url = await signedGetUrl(s3Key, 60, {
-    downloadName: `photo-${photoId.slice(0, 8)}.${ext}`,
-  });
+  const url = await signedGetUrl(s3Key, 60, { downloadName });
   return NextResponse.redirect(url, { status: 302 });
 }

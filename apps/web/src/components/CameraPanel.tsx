@@ -6,12 +6,14 @@
  * label, revoke leaked ones. Polls every 5s alongside the event view.
  */
 import { useEffect, useState } from "react";
+import { formatBytes } from "./EventLiveView";
 
 type Camera = {
   id: string;
   username: string;
   label: string | null;
   photoCount: number;
+  dataBytes: number;
   lastUploadAt: string | null;
   status: "sending" | "connected" | "idle" | "never" | "revoked";
 };
@@ -119,7 +121,7 @@ export function CameraPanel({ eventId }: { eventId: string }) {
                   {STATUS_STYLE[c.status].text}
                   {c.lastUploadAt &&
                     ` · last photo ${new Date(c.lastUploadAt).toLocaleTimeString()}`}
-                  {` · ${c.photoCount} photos`}
+                  {` · ${c.photoCount} photos · ${formatBytes(c.dataBytes)}`}
                 </p>
               </div>
             </div>

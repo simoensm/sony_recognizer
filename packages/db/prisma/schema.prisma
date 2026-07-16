@@ -272,6 +272,8 @@ model Photo {
   // sha256 of file content — dedupe key against camera/FTP retries (design 01 §3.4)
   contentHash String      @map("content_hash")
   s3Key       String      @map("s3_key")
+  // Original file size — powers the photographer's data-usage overview.
+  sizeBytes   Int?        @map("size_bytes")
   width       Int?
   height      Int?
   exif        Json        @default("{}")

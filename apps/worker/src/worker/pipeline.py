@@ -103,6 +103,15 @@ def make_variants(img: Image.Image, photo_id: str, s3_prefix: str) -> None:
         copy.save(buf, format="WEBP", quality=80)
         storage.put_bytes(f"{s3_prefix}/variants/{photo_id}/{name}.webp", buf.getvalue(), "image/webp")
 
+    # Full-resolution watermarked JPEG — what attendees receive on download.
+    # The clean original stays reserved for the photographer.
+    marked = apply_watermark(img)
+    buf = io.BytesIO()
+    marked.save(buf, format="JPEG", quality=88)
+    storage.put_bytes(
+        f"{s3_prefix}/variants/{photo_id}/watermarked.jpg", buf.getvalue(), "image/jpeg"
+    )
+
 
 def process_photo(photo_id: str, event_id: str, s3_key: str) -> dict:
     """Runs inside a photo.process job. Idempotent — safe to retry."""
