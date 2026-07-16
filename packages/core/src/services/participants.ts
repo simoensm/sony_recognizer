@@ -73,10 +73,11 @@ export class ConsentRequiredError extends Error {
   }
 }
 
-/** Ownership gate for all /participants/:id/* routes. */
+/** Ownership gate for all /participants/:id/* routes.
+ *  Deleted events take their galleries with them. */
 export async function getOwnedParticipant(userId: string, participantId: string) {
   return prisma.eventParticipant.findFirst({
-    where: { id: participantId, userId, status: "active" },
+    where: { id: participantId, userId, status: "active", event: { deletedAt: null } },
     include: { event: { select: { id: true, orgId: true, name: true, status: true } } },
   });
 }

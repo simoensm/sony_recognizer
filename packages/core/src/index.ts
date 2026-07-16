@@ -23,6 +23,8 @@ export {
   listFtpCredentials,
   revokeFtpCredential,
   getEventLog,
+  setEventStatus,
+  deleteEvent,
   getManagedEvent,
   getManagedPhoto,
 } from "./services/events";

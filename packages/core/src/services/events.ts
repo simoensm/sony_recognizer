@@ -253,6 +253,33 @@ export async function revokeFtpCredential(userId: string, credentialId: string) 
   });
 }
 
+/** End (close) or reopen an event. Closed = no new uploads, galleries stay. */
+export async function setEventStatus(userId: string, eventId: string, status: "live" | "closed") {
+  const event = await getManagedEvent(userId, eventId);
+  if (!event) return null;
+  return prisma.event.update({ where: { id: eventId }, data: { status } });
+}
+
+/**
+ * Soft-delete an event: hidden from the dashboard, QR stops resolving,
+ * cameras rejected, attendee galleries gone. Rows/files remain until the
+ * retention sweeper (M3) hard-deletes them — recoverable in an emergency.
+ */
+export async function deleteEvent(userId: string, eventId: string) {
+  const event = await getManagedEvent(userId, eventId);
+  if (!event) return null;
+  return prisma.$transaction([
+    prisma.ftpCredential.updateMany({
+      where: { eventId, revokedAt: null },
+      data: { revokedAt: new Date() },
+    }),
+    prisma.event.update({
+      where: { id: eventId },
+      data: { deletedAt: new Date(), status: "archived" },
+    }),
+  ]);
+}
+
 export type EventLogEntry = {
   at: Date;
   kind: "photo" | "photo_failed" | "participant" | "download" | "camera";

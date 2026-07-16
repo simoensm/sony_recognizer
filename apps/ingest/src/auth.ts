@@ -38,7 +38,9 @@ export async function authenticateCamera(
   if (!verifyPassword(password, credential.passwordHash)) return null;
 
   const { event } = credential;
-  if (event.deletedAt || event.status === "archived") return null;
+  // Uploads only while the event is being set up or running —
+  // ending an event closes the door on new photos.
+  if (event.deletedAt || event.status === "closed" || event.status === "archived") return null;
 
   return { credential, event };
 }

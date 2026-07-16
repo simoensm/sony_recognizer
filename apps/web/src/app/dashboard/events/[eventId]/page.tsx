@@ -9,6 +9,7 @@ import { EventLiveView } from "@/components/EventLiveView";
 import { CameraPanel } from "@/components/CameraPanel";
 import { QrPanel } from "@/components/QrPanel";
 import { EventLogPanel } from "@/components/EventLogPanel";
+import { EventControls } from "@/components/EventControls";
 
 export const dynamic = "force-dynamic";
 
@@ -36,8 +37,18 @@ export default async function EventPage({
         <Link href="/dashboard" className="text-xs tracking-[0.2em] text-white/65 uppercase hover:text-white">
           ← Events
         </Link>
-        <h1 className="mt-2 text-3xl font-bold tracking-wide uppercase">{event.name}</h1>
-        {event.venue && <p className="mt-1 text-white/75">{event.venue}</p>}
+        <div className="mt-2 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-wide uppercase">{event.name}</h1>
+            {event.venue && <p className="mt-1 text-white/75">{event.venue}</p>}
+            {event.status === "closed" && (
+              <p className="mt-1 text-xs tracking-[0.15em] text-white/55 uppercase">
+                Ended — cameras blocked, galleries still available
+              </p>
+            )}
+          </div>
+          <EventControls eventId={event.id} eventName={event.name} status={event.status} />
+        </div>
 
         <div className="mt-10 flex flex-col gap-8">
           <EventLiveView eventId={event.id} />
