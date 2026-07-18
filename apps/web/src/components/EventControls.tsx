@@ -8,13 +8,33 @@ export function EventControls({
   eventId,
   eventName,
   status,
+  publicGallery,
 }: {
   eventId: string;
   eventName: string;
   status: string;
+  publicGallery: boolean;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
+
+  async function togglePublicGallery() {
+    if (
+      !publicGallery &&
+      !confirm(
+        "Enable 'Browse all'? Every attendee of this event will be able to see ALL event photos, not just their own. Recommended for public events only.",
+      )
+    )
+      return;
+    setBusy(true);
+    await fetch(`/api/v1/events/${eventId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ publicGallery: !publicGallery }),
+    });
+    setBusy(false);
+    router.refresh();
+  }
 
   async function setStatus(next: "live" | "closed") {
     setBusy(true);
@@ -50,7 +70,19 @@ export function EventControls({
   }
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex flex-wrap items-center gap-3">
+      <button
+        onClick={togglePublicGallery}
+        disabled={busy}
+        title="When on, attendees can browse every event photo"
+        className={`rounded-xl border px-4 py-2 text-xs font-semibold tracking-wide uppercase transition-colors disabled:opacity-40 ${
+          publicGallery
+            ? "border-white bg-white text-black hover:bg-white/80"
+            : "border-white/30 text-white/85 hover:border-white hover:text-white"
+        }`}
+      >
+        Browse all: {publicGallery ? "on" : "off"}
+      </button>
       <button
         onClick={reprocess}
         disabled={busy}

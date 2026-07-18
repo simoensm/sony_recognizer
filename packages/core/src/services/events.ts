@@ -279,6 +279,18 @@ export async function listReprocessablePhotos(userId: string, eventId: string) {
   });
 }
 
+/**
+ * Per-event "browse all photos" switch (OFF by default). When on,
+ * attendees of THIS event may see the full event gallery — appropriate
+ * for public fairs, kept off for private events (docs/design/06 §2).
+ */
+export async function setPublicGallery(userId: string, eventId: string, enabled: boolean) {
+  const event = await getManagedEvent(userId, eventId);
+  if (!event) return null;
+  const settings = { ...((event.settings as object) ?? {}), publicGallery: enabled };
+  return prisma.event.update({ where: { id: eventId }, data: { settings } });
+}
+
 /** End (close) or reopen an event. Closed = no new uploads, galleries stay. */
 export async function setEventStatus(userId: string, eventId: string, status: "live" | "closed") {
   const event = await getManagedEvent(userId, eventId);

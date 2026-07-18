@@ -48,7 +48,12 @@ export default async function EventPage({
               </p>
             )}
           </div>
-          <EventControls eventId={event.id} eventName={event.name} status={event.status} />
+          <EventControls
+            eventId={event.id}
+            eventName={event.name}
+            status={event.status}
+            publicGallery={Boolean((event.settings as { publicGallery?: boolean })?.publicGallery)}
+          />
         </div>
 
         <div className="mt-10 flex flex-col gap-8">

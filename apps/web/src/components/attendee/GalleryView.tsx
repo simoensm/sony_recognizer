@@ -21,6 +21,23 @@ export function GalleryView({
   const [retaking, setRetaking] = useState(false);
   const [retakeError, setRetakeError] = useState<string | null>(null);
   const retakeRef = useRef<HTMLInputElement>(null);
+  const [browseAllEnabled, setBrowseAllEnabled] = useState(false);
+  const [allPhotos, setAllPhotos] = useState<GalleryPhoto[] | null>(null);
+  const [showAll, setShowAll] = useState(false);
+
+  async function toggleBrowseAll() {
+    if (showAll) {
+      setShowAll(false);
+      return;
+    }
+    if (allPhotos === null) {
+      const res = await fetch(`/api/v1/participants/${participantId}/all-photos`, {
+        cache: "no-store",
+      }).catch(() => null);
+      if (res?.ok) setAllPhotos((await res.json()).photos);
+    }
+    setShowAll(true);
+  }
 
   async function retake(file: File) {
     setRetaking(true);
@@ -64,7 +81,11 @@ export function GalleryView({
       const res = await fetch(`/api/v1/participants/${participantId}/gallery`, {
         cache: "no-store",
       }).catch(() => null);
-      if (alive && res?.ok) setPhotos((await res.json()).photos);
+      if (alive && res?.ok) {
+        const body = await res.json();
+        setPhotos(body.photos);
+        setBrowseAllEnabled(Boolean(body.browseAllEnabled));
+      }
     }
     tick();
     const timer = setInterval(tick, 5000);
@@ -74,7 +95,7 @@ export function GalleryView({
     };
   }, [participantId]);
 
-  const list = photos ?? [];
+  const list = (showAll ? allPhotos : photos) ?? [];
 
   return (
     <>
@@ -82,9 +103,11 @@ export function GalleryView({
         <p className="text-sm text-white/75">
           {retaking
             ? "Matching your new selfie…"
-            : list.length === 0
-              ? "No photos yet — they appear here automatically as the photographer shoots."
-              : `${list.length} photo${list.length === 1 ? "" : "s"} — updates automatically.`}
+            : showAll
+              ? `All event photos (${list.length})`
+              : list.length === 0
+                ? "No photos yet — they appear here automatically as the photographer shoots."
+                : `${list.length} photo${list.length === 1 ? "" : "s"} — updates automatically.`}
         </p>
         <input
           ref={retakeRef}
@@ -98,13 +121,23 @@ export function GalleryView({
             e.target.value = "";
           }}
         />
-        <button
-          onClick={() => retakeRef.current?.click()}
-          disabled={retaking}
-          className="rounded-xl border border-white/30 px-4 py-2 text-xs font-semibold tracking-wide text-white/85 uppercase transition-colors hover:border-white hover:text-white disabled:opacity-40"
-        >
-          {retaking ? "Matching…" : "Retake selfie"}
-        </button>
+        <div className="flex gap-2">
+          {browseAllEnabled && (
+            <button
+              onClick={toggleBrowseAll}
+              className="rounded-xl border border-white/30 px-4 py-2 text-xs font-semibold tracking-wide text-white/85 uppercase transition-colors hover:border-white hover:text-white"
+            >
+              {showAll ? "My photos" : "Browse all"}
+            </button>
+          )}
+          <button
+            onClick={() => retakeRef.current?.click()}
+            disabled={retaking}
+            className="rounded-xl border border-white/30 px-4 py-2 text-xs font-semibold tracking-wide text-white/85 uppercase transition-colors hover:border-white hover:text-white disabled:opacity-40"
+          >
+            {retaking ? "Matching…" : "Retake selfie"}
+          </button>
+        </div>
       </div>
       {retakeError && <p className="mt-2 text-sm text-amber-400">{retakeError}</p>}
 

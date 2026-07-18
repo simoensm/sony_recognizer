@@ -78,8 +78,33 @@ export class ConsentRequiredError extends Error {
 export async function getOwnedParticipant(userId: string, participantId: string) {
   return prisma.eventParticipant.findFirst({
     where: { id: participantId, userId, status: "active", event: { deletedAt: null } },
-    include: { event: { select: { id: true, orgId: true, name: true, status: true } } },
+    include: {
+      event: { select: { id: true, orgId: true, name: true, status: true, settings: true } },
+    },
   });
+}
+
+function eventAllowsBrowseAll(settings: unknown): boolean {
+  return Boolean((settings as { publicGallery?: boolean } | null)?.publicGallery);
+}
+
+/** Full event gallery — ONLY when the photographer enabled it for this event. */
+export async function getAllEventPhotos(userId: string, participantId: string) {
+  const participant = await getOwnedParticipant(userId, participantId);
+  if (!participant) return null;
+  if (!eventAllowsBrowseAll(participant.event.settings)) return null;
+
+  const photos = await prisma.photo.findMany({
+    where: {
+      eventId: participant.event.id,
+      published: true,
+      deletedAt: null,
+      status: "processed",
+    },
+    orderBy: { capturedAt: "desc" },
+    select: { id: true, capturedAt: true, createdAt: true },
+  });
+  return photos.map((p) => ({ id: p.id, capturedAt: p.capturedAt ?? p.createdAt }));
 }
 
 /** Selfie accepted for processing: reset status before the worker runs. */
@@ -131,10 +156,15 @@ export async function getGallery(userId: string, participantId: string) {
       score: m.score,
     }));
 
-  return { event: participant.event, photos };
+  return {
+    event: participant.event,
+    photos,
+    browseAllEnabled: eventAllowsBrowseAll(participant.event.settings),
+  };
 }
 
-/** May this user view this photo? True iff one of their matches links to it. */
+/** May this user view this photo? Via a match — or, when the photographer
+ *  enabled browse-all for the event, via active participation in it. */
 export async function canViewPhotoAsParticipant(userId: string, photoId: string) {
   const match = await prisma.match.findFirst({
     where: {
@@ -144,7 +174,21 @@ export async function canViewPhotoAsParticipant(userId: string, photoId: string)
       photo: { published: true, deletedAt: null },
     },
   });
-  return match !== null;
+  if (match) return true;
+
+  const viaPublic = await prisma.photo.findFirst({
+    where: {
+      id: photoId,
+      published: true,
+      deletedAt: null,
+      event: {
+        deletedAt: null,
+        participants: { some: { userId, status: "active" } },
+      },
+    },
+    select: { event: { select: { settings: true } } },
+  });
+  return viaPublic !== null && eventAllowsBrowseAll(viaPublic.event.settings);
 }
 
 /**
