@@ -22,6 +22,7 @@ export {
   createFtpCredential,
   listFtpCredentials,
   revokeFtpCredential,
+  regenerateFtpPassword,
   getEventLog,
   setEventStatus,
   deleteEvent,

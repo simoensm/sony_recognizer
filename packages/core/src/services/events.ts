@@ -206,6 +206,24 @@ export async function createFtpCredential(userId: string, eventId: string, label
   return { username, password };
 }
 
+/**
+ * Fresh password for an existing camera login (the old one is stored only
+ * as a hash and cannot be shown — this is the recovery path). Returned ONCE.
+ */
+export async function regenerateFtpPassword(userId: string, credentialId: string) {
+  const credential = await prisma.ftpCredential.findUnique({ where: { id: credentialId } });
+  if (!credential || credential.revokedAt) return null;
+  const event = await getManagedEvent(userId, credential.eventId);
+  if (!event) return null;
+
+  const password = friendlyToken(10);
+  await prisma.ftpCredential.update({
+    where: { id: credentialId },
+    data: { passwordHash: hashPassword(password) },
+  });
+  return { username: credential.username, password };
+}
+
 /** Camera list for the event dashboard: liveness + per-camera photo count. */
 export async function listFtpCredentials(userId: string, eventId: string) {
   const event = await getManagedEvent(userId, eventId);
@@ -213,7 +231,7 @@ export async function listFtpCredentials(userId: string, eventId: string) {
 
   const [credentials, bytesPerCamera] = await Promise.all([
     prisma.ftpCredential.findMany({
-      where: { eventId },
+      where: { eventId, revokedAt: null }, // revoked logins disappear from the list
       orderBy: { createdAt: "desc" },
       include: { _count: { select: { photos: true } } },
     }),

@@ -9,12 +9,12 @@ type Entry = {
   message: string;
 };
 
-const KIND_DOT: Record<Entry["kind"], string> = {
-  photo: "bg-white",
-  photo_failed: "bg-red-500",
-  participant: "bg-white/70",
-  download: "bg-white/50",
-  camera: "bg-white/30",
+const KIND_STYLE: Record<Entry["kind"], { dot: string; text: string }> = {
+  photo: { dot: "bg-white", text: "text-white/85" },
+  photo_failed: { dot: "bg-red-500", text: "text-red-400" },
+  participant: { dot: "bg-amber-400", text: "text-amber-300" },
+  download: { dot: "bg-sky-400", text: "text-sky-300" },
+  camera: { dot: "bg-green-400", text: "text-green-300" },
 };
 
 export function EventLogPanel({ eventId }: { eventId: string }) {
@@ -58,13 +58,11 @@ export function EventLogPanel({ eventId }: { eventId: string }) {
       <ul className="mt-4 max-h-96 divide-y divide-white/5 overflow-y-auto">
         {shown.map((e, i) => (
           <li key={i} className="flex items-baseline gap-3 py-2.5 text-sm">
-            <span className={`h-1.5 w-1.5 shrink-0 translate-y-[-1px] rounded-full ${KIND_DOT[e.kind]}`} />
+            <span className={`h-1.5 w-1.5 shrink-0 translate-y-[-1px] rounded-full ${KIND_STYLE[e.kind].dot}`} />
             <span className="shrink-0 font-mono text-xs text-white/45">
               {new Date(e.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
             </span>
-            <span className={e.kind === "photo_failed" ? "text-red-400" : "text-white/85"}>
-              {e.message}
-            </span>
+            <span className={KIND_STYLE[e.kind].text}>{e.message}</span>
           </li>
         ))}
         {entries !== null && entries.length === 0 && (

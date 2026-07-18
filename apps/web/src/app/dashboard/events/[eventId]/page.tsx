@@ -59,7 +59,7 @@ export default async function EventPage({
         <div className="mt-10 flex flex-col gap-8">
           <EventLiveView eventId={event.id} />
           <div className="grid gap-8 lg:grid-cols-2">
-            <CameraPanel eventId={event.id} />
+            <CameraPanel eventId={event.id} serverHost={env.FTP_PASV_HOST} />
             <QrPanel joinUrl={joinUrl} eventId={event.id} />
           </div>
           <UploadPanel eventId={event.id} />
