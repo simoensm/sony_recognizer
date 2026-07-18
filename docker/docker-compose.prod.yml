@@ -104,11 +104,13 @@ services:
       S3_ENDPOINT: http://minio:9000
       FTP_PORT: "2121"
       FTP_PASV_HOST: ${FTP_PASV_HOST:?LAN IP of this machine}
+      # Wide passive range: each FTP transfer borrows a port, and flaky
+      # mobile connections hold them for minutes — 10 was far too few.
       FTP_PASV_MIN: "30000"
-      FTP_PASV_MAX: "30009"
+      FTP_PASV_MAX: "30099"
     ports:
       - "2121:2121"
-      - "30000-30009:30000-30009"
+      - "30000-30099:30000-30099"
     depends_on:
       postgres:
         condition: service_healthy
