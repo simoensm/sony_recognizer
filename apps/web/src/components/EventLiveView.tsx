@@ -64,12 +64,20 @@ export function EventLiveView({ eventId }: { eventId: string }) {
 
   return (
     <section>
-      <div className="flex items-center gap-3">
-        <h2 className="text-sm font-semibold tracking-[0.2em] text-white/75 uppercase">Live</h2>
-        <span
-          className={`inline-block h-2 w-2 rounded-full ${stale ? "bg-red-500" : "animate-pulse bg-white"}`}
-          title={stale ? "connection lost" : "updating"}
-        />
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <h2 className="text-sm font-semibold tracking-[0.2em] text-white/75 uppercase">Live</h2>
+          <span
+            className={`inline-block h-2 w-2 rounded-full ${stale ? "bg-red-500" : "animate-pulse bg-white"}`}
+            title={stale ? "connection lost" : "updating"}
+          />
+        </div>
+        <a
+          href={`/dashboard/events/${eventId}/photos`}
+          className="text-xs font-semibold tracking-[0.15em] text-white/65 uppercase transition-colors hover:text-white"
+        >
+          See all →
+        </a>
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-7">

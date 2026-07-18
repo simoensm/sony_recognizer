@@ -413,6 +413,42 @@ export async function getEventLog(userId: string, eventId: string, limit = 50) {
   return entries.sort((a, b) => b.at.getTime() - a.at.getTime()).slice(0, limit);
 }
 
+/** Full photo archive for the photographer, cursor-paginated (newest first). */
+export async function listEventPhotos(
+  userId: string,
+  eventId: string,
+  cursor?: string,
+  limit = 60,
+) {
+  const event = await getManagedEvent(userId, eventId);
+  if (!event) return null;
+
+  const photos = await prisma.photo.findMany({
+    where: { eventId, deletedAt: null },
+    orderBy: { id: "desc" }, // UUIDv7 = time-ordered, so id order is capture order
+    take: limit + 1,
+    ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+    select: {
+      id: true,
+      status: true,
+      published: true,
+      capturedAt: true,
+      createdAt: true,
+      _count: { select: { faces: true } },
+    },
+  });
+
+  const hasMore = photos.length > limit;
+  const page = photos.slice(0, limit).map((p) => ({
+    id: p.id,
+    status: p.status,
+    published: p.published,
+    capturedAt: p.capturedAt ?? p.createdAt,
+    faces: p._count.faces,
+  }));
+  return { photos: page, nextCursor: hasMore ? page[page.length - 1]?.id : null };
+}
+
 /** Photographer: hide a photo from all galleries (or bring it back).
  *  Nothing is deleted — galleries self-heal because they only ever read
  *  published photos. */

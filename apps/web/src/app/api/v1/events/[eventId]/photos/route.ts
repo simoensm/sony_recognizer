@@ -8,7 +8,7 @@ import { createHash } from "node:crypto";
 import { v7 as uuidv7 } from "uuid";
 import exifr from "exifr";
 import { prisma, Prisma } from "@sr/db";
-import { getManagedEvent } from "@sr/core";
+import { getManagedEvent, listEventPhotos } from "@sr/core";
 import { QUEUES, photoProcessJob } from "@sr/queue";
 import { getSession } from "@/lib/session";
 import { putObject } from "@/lib/s3";
@@ -17,6 +17,22 @@ import { photoQueue } from "@/lib/queue";
 export const dynamic = "force-dynamic";
 
 const MAX_BYTES = 60 * 1024 * 1024;
+
+/** GET — paginated archive for the photographer (?cursor=<photoId>). */
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ eventId: string }> },
+) {
+  const session = await getSession();
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { eventId } = await params;
+  const cursor = req.nextUrl.searchParams.get("cursor") ?? undefined;
+  const result = await listEventPhotos(session.user.id, eventId, cursor);
+  if (!result) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  return NextResponse.json(result);
+}
 
 export async function POST(
   req: NextRequest,

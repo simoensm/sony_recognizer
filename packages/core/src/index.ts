@@ -29,6 +29,7 @@ export {
   listReprocessablePhotos,
   setPublicGallery,
   setPhotoPublished,
+  listEventPhotos,
   getManagedEvent,
   getManagedPhoto,
 } from "./services/events";
