@@ -12,11 +12,19 @@ const connection = {
   password: redisUrl.password || undefined,
 };
 
-const globalForQueues = globalThis as unknown as { selfieQueue?: Queue };
+const globalForQueues = globalThis as unknown as { selfieQueue?: Queue; photoQueue?: Queue };
 
 /** selfie.enroll — its own queue so a waiting human never sits behind photos. */
 export const selfieQueue =
   globalForQueues.selfieQueue ??
   new Queue(QUEUES.selfieEnroll, { connection, defaultJobOptions: DEFAULT_JOB_OPTIONS });
 
-if (process.env.NODE_ENV !== "production") globalForQueues.selfieQueue = selfieQueue;
+/** photo.process — used by browser uploads and event reprocessing. */
+export const photoQueue =
+  globalForQueues.photoQueue ??
+  new Queue(QUEUES.photoProcess, { connection, defaultJobOptions: DEFAULT_JOB_OPTIONS });
+
+if (process.env.NODE_ENV !== "production") {
+  globalForQueues.selfieQueue = selfieQueue;
+  globalForQueues.photoQueue = photoQueue;
+}

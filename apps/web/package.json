@@ -17,6 +17,8 @@
     "@sr/queue": "workspace:*",
     "better-auth": "^1.2.0",
     "bullmq": "^5.49.0",
+    "exifr": "^7.1.3",
+    "uuid": "^11.0.0",
     "next": "^15.3.0",
     "qrcode": "^1.5.4",
     "react": "^19.0.0",

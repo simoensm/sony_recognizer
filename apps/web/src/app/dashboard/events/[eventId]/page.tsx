@@ -10,6 +10,7 @@ import { CameraPanel } from "@/components/CameraPanel";
 import { QrPanel } from "@/components/QrPanel";
 import { EventLogPanel } from "@/components/EventLogPanel";
 import { EventControls } from "@/components/EventControls";
+import { UploadPanel } from "@/components/UploadPanel";
 
 export const dynamic = "force-dynamic";
 
@@ -56,6 +57,7 @@ export default async function EventPage({
             <CameraPanel eventId={event.id} />
             <QrPanel joinUrl={joinUrl} eventId={event.id} />
           </div>
+          <UploadPanel eventId={event.id} />
           <EventLogPanel eventId={event.id} />
         </div>
       </main>
