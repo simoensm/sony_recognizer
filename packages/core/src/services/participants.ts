@@ -225,6 +225,43 @@ export async function requestDownload(
   return { s3Key: match.photo.s3Key };
 }
 
+/**
+ * "Remove me": a person matched IN a photo objects to it. The photo is
+ * hidden from everyone immediately (objection honored first, reviewed
+ * later — docs/design/06 §1 T-wrong-person / GDPR right to object).
+ * The photographer sees it as hidden and can restore it after review.
+ */
+export async function reportAndHidePhoto(userId: string, photoId: string) {
+  const match = await prisma.match.findFirst({
+    where: {
+      photoId,
+      status: { in: ["auto", "confirmed"] },
+      participant: { userId, status: "active" },
+      photo: { published: true, deletedAt: null },
+    },
+    include: { photo: { select: { event: { select: { orgId: true } } } } },
+  });
+  if (!match) return null;
+
+  await prisma.$transaction([
+    prisma.photo.update({
+      where: { id: photoId },
+      data: { published: false, publishedAt: null },
+    }),
+    prisma.auditLog.create({
+      data: {
+        orgId: match.photo.event.orgId,
+        actorType: "user",
+        actorId: userId,
+        action: "photo.hidden_by_attendee_request",
+        entityType: "photo",
+        entityId: photoId,
+      },
+    }),
+  ]);
+  return { hidden: true };
+}
+
 /** Dashboard helper: every event needs a QR; create on first ask. */
 export async function ensureEventQr(eventId: string) {
   const existing = await prisma.qrCode.findFirst({

@@ -178,13 +178,31 @@ export function GalleryView({
             alt=""
             className="max-h-[80vh] max-w-full "
           />
-          <div className="flex gap-3" onClick={(e) => e.stopPropagation()}>
+          <div className="flex flex-wrap justify-center gap-3" onClick={(e) => e.stopPropagation()}>
             <a
               href={`/api/v1/photos/${open.id}/download`}
               className="rounded-xl border border-white bg-transparent px-6 py-2.5 font-semibold tracking-wide text-white uppercase transition-colors hover:bg-white hover:text-black"
             >
               Download
             </a>
+            {!showAll && (
+              <button
+                onClick={async () => {
+                  if (
+                    !confirm(
+                      "Remove this photo? It will be hidden from everyone at the event, including you.",
+                    )
+                  )
+                    return;
+                  await fetch(`/api/v1/photos/${open.id}/report`, { method: "POST" });
+                  setOpen(null);
+                  setPhotos((prev) => prev?.filter((p) => p.id !== open.id) ?? null);
+                }}
+                className="rounded-xl border border-red-500/40 px-6 py-2.5 tracking-wide text-red-400 uppercase transition-colors hover:border-red-400 hover:text-red-300"
+              >
+                Remove me
+              </button>
+            )}
             <button
               onClick={() => setOpen(null)}
               className="rounded-xl border border-white/30 px-6 py-2.5 tracking-wide text-white/80 uppercase"

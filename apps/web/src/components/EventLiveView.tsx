@@ -12,7 +12,7 @@ type Stats = {
   participants: number;
   recognized: number;
   dataBytes: number;
-  recentPhotos: { id: string; status: string; createdAt: string }[];
+  recentPhotos: { id: string; status: string; published: boolean; createdAt: string }[];
 };
 
 export function formatBytes(bytes: number): string {
@@ -89,13 +89,20 @@ export function EventLiveView({ eventId }: { eventId: string }) {
             className="relative aspect-square overflow-hidden rounded-lg bg-white/5"
           >
             {p.status === "processed" ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={`/api/v1/photos/${p.id}/thumb`}
-                alt=""
-                className="h-full w-full object-cover transition-transform duration-300 ease-out hover:scale-105"
-                loading="lazy"
-              />
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={`/api/v1/photos/${p.id}/thumb`}
+                  alt=""
+                  className={`h-full w-full object-cover transition-transform duration-300 ease-out hover:scale-105 ${p.published ? "" : "opacity-40"}`}
+                  loading="lazy"
+                />
+                {!p.published && (
+                  <span className="absolute inset-x-0 bottom-0 bg-black/70 py-0.5 text-center text-[8px] tracking-widest text-red-300 uppercase">
+                    Hidden
+                  </span>
+                )}
+              </>
             ) : (
               <div className="flex h-full w-full items-center justify-center text-[9px] tracking-widest text-white/55 uppercase">
                 {p.status}
@@ -128,6 +135,25 @@ export function EventLiveView({ eventId }: { eventId: string }) {
             >
               Download original
             </a>
+            {(() => {
+              const current = stats.recentPhotos.find((p) => p.id === open);
+              if (!current) return null;
+              return (
+                <button
+                  onClick={async () => {
+                    await fetch(`/api/v1/photos/${open}`, {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ published: !current.published }),
+                    });
+                    setOpen(null);
+                  }}
+                  className="rounded-xl border border-white/30 px-6 py-2.5 tracking-wide text-white/80 uppercase transition-colors hover:border-white hover:text-white"
+                >
+                  {current.published ? "Hide" : "Unhide"}
+                </button>
+              );
+            })()}
             <button
               onClick={() => setOpen(null)}
               className="rounded-xl border border-white/30 px-6 py-2.5 tracking-wide text-white/80 uppercase"

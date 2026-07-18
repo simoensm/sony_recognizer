@@ -158,7 +158,7 @@ export async function getEventStats(userId: string, eventId: string) {
       where: { eventId, deletedAt: null },
       orderBy: { createdAt: "desc" },
       take: 24,
-      select: { id: true, status: true, createdAt: true, capturedAt: true },
+      select: { id: true, status: true, published: true, createdAt: true, capturedAt: true },
     }),
   ]);
 
@@ -393,6 +393,28 @@ export async function getEventLog(userId: string, eventId: string, limit = 50) {
   ];
 
   return entries.sort((a, b) => b.at.getTime() - a.at.getTime()).slice(0, limit);
+}
+
+/** Photographer: hide a photo from all galleries (or bring it back).
+ *  Nothing is deleted — galleries self-heal because they only ever read
+ *  published photos. */
+export async function setPhotoPublished(userId: string, photoId: string, published: boolean) {
+  const photo = await getManagedPhoto(userId, photoId);
+  if (!photo) return null;
+  const updated = await prisma.photo.update({
+    where: { id: photoId },
+    data: { published, publishedAt: published ? new Date() : null },
+  });
+  await prisma.auditLog.create({
+    data: {
+      actorType: "user",
+      actorId: userId,
+      action: published ? "photo.published" : "photo.unpublished",
+      entityType: "photo",
+      entityId: photoId,
+    },
+  });
+  return updated;
 }
 
 /** Thumbnail access check: may this user see this photo's variants? */

@@ -27,6 +27,7 @@ export {
   deleteEvent,
   listReprocessablePhotos,
   setPublicGallery,
+  setPhotoPublished,
   getManagedEvent,
   getManagedPhoto,
 } from "./services/events";
@@ -44,4 +45,5 @@ export {
   requestDownload,
   ensureEventQr,
   getAllEventPhotos,
+  reportAndHidePhoto,
 } from "./services/participants";
