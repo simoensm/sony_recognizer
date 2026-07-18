@@ -100,8 +100,8 @@ def make_variants(img: Image.Image, photo_id: str, s3_prefix: str) -> None:
         if name == "preview":
             copy = apply_watermark(copy)
         buf = io.BytesIO()
-        copy.save(buf, format="WEBP", quality=80)
-        storage.put_bytes(f"{s3_prefix}/variants/{photo_id}/{name}.webp", buf.getvalue(), "image/webp")
+        copy.save(buf, format="JPEG", quality=88)
+        storage.put_bytes(f"{s3_prefix}/variants/{photo_id}/{name}.jpg", buf.getvalue(), "image/jpeg")
 
     # Full-resolution watermarked JPEG — what attendees receive on download.
     # The clean original stays reserved for the photographer.
